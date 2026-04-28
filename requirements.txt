@@ -1,0 +1,17 @@
+pydantic-settings
+email-validator
+sentry-sdk
+fastapi
+uvicorn
+sqlalchemy 
+asyncpg
+alembic
+psycopg2-binary
+python-jose
+passlib
+python-multipart
+pytest
+httpx
+pytest-cov
+pytest-asyncio
+pre-commit
