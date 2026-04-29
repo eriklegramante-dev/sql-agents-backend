@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: compile-python
+        name: compile python files
+        entry: python3 -m compileall -q app alembic main.py
+        language: system
+        pass_filenames: false
+      - id: unit-tests
+        name: unit tests
+        entry: python3 -m pytest -q --cov=app --cov-report=term-missing
+        language: system
+        pass_filenames: false
