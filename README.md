@@ -1,43 +1,212 @@
 # SQL Agents Backend
 
-Backend CRUD built with FastAPI, PostgreSQL, SQLAlchemy, Alembic, and JWT authentication.
+Backend API for the SQL Agents Platform. The project provides user management,
+JWT authentication, role-based access control, database migrations, and a
+FastAPI foundation for the platform services.
 
-## Running with Docker
+## Tech Stack
 
-Start the full local stack:
+- Python 3.10
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Alembic
+- Pydantic Settings
+- JWT authentication
+- Docker and Docker Compose
+- Pytest
+
+## Requirements
+
+- Python 3.10+
+- Docker
+- Docker Compose
+
+## Setup
+
+Clone the repository:
 
 ```bash
-docker compose up -d --build
+git clone git@github.com:Huelerssey/sql-agents-backend.git
+cd sql-agents-backend
 ```
 
-Run database migrations from your local terminal:
+Create and activate a virtual environment:
 
 ```bash
-alembic upgrade head
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-Open the API docs:
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+pre-commit install
+```
+
+Create the local environment file:
+
+```bash
+cp .env.example .env
+```
+
+The default `.env.example` values are ready for local development with Docker
+Compose. Update secrets before using any production-like environment.
+
+## Environment Variables
+
+| Variable | Description |
+| --- | --- |
+| `APP_ENVIRONMENT` | Application environment. Use `dev` for local development. |
+| `POSTGRES_USER` | PostgreSQL username used by Docker Compose. |
+| `POSTGRES_PASSWORD` | PostgreSQL password used by Docker Compose. |
+| `POSTGRES_DB` | PostgreSQL database name used by Docker Compose. |
+| `DATABASE_URL_DEV` | Local development database URL. |
+| `DATABASE_URL_PROD` | Production database URL. |
+| `SENTRY_DNS` | Sentry DSN for error tracking. |
+| `SECURITY_SECRET_KEY` | Secret key used to sign JWT tokens. |
+| `SECURITY_JWT_ALGORITHM` | JWT signing algorithm. |
+| `SECURITY_JWT_EXP_MINUTES` | JWT expiration time in minutes. |
+
+## Run Project (Docker)
+
+Start the API and database:
+
+```bash
+docker compose up --build -d
+```
+
+Run database migrations:
+
+```bash
+docker compose exec fast-api-crud alembic upgrade head
+```
+
+The API will be available at:
+
+```text
+http://localhost:8000
+```
+
+Open the interactive API documentation:
 
 ```text
 http://localhost:8000/docs
 ```
 
-## Local Development Notes
+Stop the containers:
 
-The `.env` file is prepared for local commands to reach PostgreSQL through the Docker-exposed port:
-
-```text
-DATABASE_URL_DEV=postgresql+asyncpg://crud_user:123456789abcde@localhost:5432/crud_fastapi
+```bash
+docker compose down
 ```
 
-Inside Docker Compose, the API service overrides this value to use the internal service hostname:
+## Run Backend Locally
 
-```text
-DATABASE_URL_DEV=postgresql+asyncpg://crud_user:123456789abcde@postgres:5432/crud_fastapi
+Start only PostgreSQL with Docker:
+
+```bash
+docker compose up -d postgres
 ```
 
-Use `.env.example` as the reference file for new local environments.
+Run migrations from your local environment:
 
-## First Admin User
+```bash
+alembic upgrade head
+```
 
-Protected create routes require an authenticated admin user. For a fresh database, run the bootstrap command documented in `BOOTSTRAP_ADMIN.md` after applying migrations.
+Start the FastAPI development server:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+## Run Frontend
+
+This repository contains only the backend API. Run the frontend from its own
+repository when it is available, then point it to:
+
+```text
+http://127.0.0.1:8000
+```
+
+## API Routes
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `POST` | `/api/v1/token` | Authenticate a user and return a JWT access token. |
+| `POST` | `/api/v1/create` | Create a regular user. Requires admin authentication. |
+| `POST` | `/api/v1/create-admin` | Create an admin user. Requires admin authentication. |
+
+## Request Examples
+
+Get an access token:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=admin@example.com" \
+  -d "password=Strong@123"
+```
+
+Create a user:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/create \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <access_token>" \
+  -d '{
+    "name": "Standard User",
+    "email": "standard@example.com",
+    "cpf": "12345678901",
+    "birth_date": "1990-01-01",
+    "country": "Brazil",
+    "password": "Strong@123"
+  }'
+```
+
+## Tests
+
+Run the test suite:
+
+```bash
+pytest
+```
+
+Run tests with coverage:
+
+```bash
+pytest --cov=app --cov-report=html
+```
+
+Open the coverage report:
+
+```text
+htmlcov/index.html
+```
+
+## Database Migrations
+
+Create a new migration after changing SQLAlchemy models:
+
+```bash
+alembic revision --autogenerate -m "describe change"
+```
+
+Apply migrations:
+
+```bash
+alembic upgrade head
+```
+
+Rollback one migration:
+
+```bash
+alembic downgrade -1
+```
