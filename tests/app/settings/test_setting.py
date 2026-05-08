@@ -37,8 +37,11 @@ def test_database_settings_falls_back_to_dev_when_prod_url_empty(monkeypatch):
 def test_settings_models_accept_values():
     assert AppEnvironmentSettings(environment="dev").environment == Environment.DEV
     assert SentrySettings(dns="").dns == ""
-    assert SecuritySettings(
-        secret_key="secret",
-        jwt_algorithm="HS256",
-        jwt_exp_minutes=60,
-    ).jwt_exp_minutes == 60
+    assert (
+        SecuritySettings(
+            secret_key="secret",
+            jwt_algorithm="HS256",
+            jwt_exp_minutes=60,
+        ).jwt_exp_minutes
+        == 60
+    )

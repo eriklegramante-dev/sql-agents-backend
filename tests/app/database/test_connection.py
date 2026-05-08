@@ -20,7 +20,9 @@ class Engine:
         self.disposed = True
 
 
-def test_database_connection_initializes_engine_and_sessionmaker(monkeypatch, fake_logger):
+def test_database_connection_initializes_engine_and_sessionmaker(
+    monkeypatch, fake_logger
+):
     engine = Engine()
     values = {}
 
@@ -47,8 +49,12 @@ def test_database_connection_initializes_engine_and_sessionmaker(monkeypatch, fa
 async def test_database_connection_closes_engine(monkeypatch, fake_logger):
     engine = Engine()
 
-    monkeypatch.setattr(connection, "create_async_engine", lambda *args, **kwargs: engine)
-    monkeypatch.setattr(connection, "async_sessionmaker", lambda **kwargs: "sessionmaker")
+    monkeypatch.setattr(
+        connection, "create_async_engine", lambda *args, **kwargs: engine
+    )
+    monkeypatch.setattr(
+        connection, "async_sessionmaker", lambda **kwargs: "sessionmaker"
+    )
 
     db_connection = DatabaseConnection(logger=fake_logger, settings=Settings())
     await db_connection.close()

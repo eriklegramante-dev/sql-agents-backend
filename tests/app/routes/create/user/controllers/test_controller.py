@@ -80,7 +80,10 @@ async def test_create_user_returns_403_for_policy_denial(fake_logger):
     response = await controller.create_user(create_request(), current_user())
 
     assert response.status_code == 403
-    assert response_content(response)["message"] == "You are not authorized to create users."
+    assert (
+        response_content(response)["message"]
+        == "You are not authorized to create users."
+    )
 
 
 async def test_create_user_returns_500_for_unexpected_error(fake_logger):

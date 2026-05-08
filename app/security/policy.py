@@ -39,28 +39,23 @@ class UserPolicy:
             f"[policy] validating create permission for {request.__class__.__name__}"
         )
         if current_user.role == UserRole.ADMIN:
-            self.logger.log_debug(
-                f"[policy] ADMIN {current_user.id} can create users."
-            )
+            self.logger.log_debug(f"[policy] ADMIN {current_user.id} can create users.")
             return True
 
         self.logger.log_info(f"[policy] User {current_user.id} denied create access.")
         return False
 
     def can_view(self, request: object, current_user: UserTable) -> bool:
-        
-        #TODO: @Ronald 
-        
+        # TODO: @Ronald
+
         pass
 
     def can_update(self, request: object, current_user: UserTable) -> bool:
-
-        #TODO: @Mouth
+        # TODO: @Mouth
 
         pass
 
     def can_delete(self, request: object, current_user: UserTable) -> bool:
-
-        #TODO: @Djhonsons-baby
+        # TODO: @Djhonsons-baby
 
         pass

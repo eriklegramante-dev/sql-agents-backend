@@ -56,7 +56,9 @@ async def test_create_user_route_delegates_to_controller(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_create_admin_route_delegates_to_controller(monkeypatch):
-    monkeypatch.setattr(create_admin_route, "CreateAdminController", CreateAdminController)
+    monkeypatch.setattr(
+        create_admin_route, "CreateAdminController", CreateAdminController
+    )
     request = CreateAdminRequestDTO(
         name="Admin User",
         email="admin@example.com",
