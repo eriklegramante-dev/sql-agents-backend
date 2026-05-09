@@ -2,6 +2,7 @@
 .gitignore
 .env
 .venv
+.poetry
 docs
 __pycache__
 *.py[cod]
