@@ -4,6 +4,7 @@ from app.models.users_table import UserTable, UserRole
 from app.routes.create.admin.dtos.dto import CreateAdminRequestDTO
 from app.routes.create.user.dtos.dto import CreateUserRequestDTO
 from app.logs.setup_logger import LoggerManager, LOGGER
+from app.routes.update.dtos.dto import UpdateUserRequestDTO
 
 
 class UserPolicy:
@@ -47,20 +48,47 @@ class UserPolicy:
         self.logger.log_info(f"[policy] User {current_user.id} denied create access.")
         return False
 
-    def can_view(self, request: object, current_user: UserTable) -> bool:
-        
-        #TODO: @Ronald 
-        
-        pass
+    def can_update(
+        self,
+        request: UpdateUserRequestDTO,
+        current_user: UserTable
+        ) -> bool:
+        """
+        Validates whether the current user can update another user.
+        """
 
-    def can_update(self, request: object, current_user: UserTable) -> bool:
+        self.logger.log_debug(
+            f"[policy] validating update permission for user {current_user.id}"
+        )
 
-        #TODO: @Mouth
+        if current_user.role == UserRole.ADMIN:
+            self.logger.log_info(
+                f"[policy] ADMIN {current_user.id} authorized to update users."
+            )
+            return True
 
-        pass
+        if request.id != current_user.id:
+            self.logger.log_info(
+                f"[policy] user {current_user.id} denied update access."
+            )
+            return False
 
-    def can_delete(self, request: object, current_user: UserTable) -> bool:
+        if request.role is not None:
+            self.logger.log_info(
+                f"[policy] user {current_user.id} attempted role update."
+            )
+            return False
 
-        #TODO: @Djhonsons-baby
+        if request.status is not None:
+            self.logger.log_info(
+                f"[policy] user {current_user.id} attempted status update."
+            )
+            return False
 
-        pass
+        self.logger.log_info(
+            f"[policy] user {current_user.id} authorized to update own profile."
+        )
+
+        return True
+
+
