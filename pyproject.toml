@@ -1,0 +1,38 @@
+[project]
+name = "sql-agents-backend"
+version = "0.1.0"
+description = "Backend service for SQL agents."
+authors = [
+    {name = "Huelerssey"},
+]
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "pydantic-settings",
+    "email-validator",
+    "sentry-sdk",
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "asyncpg",
+    "alembic",
+    "psycopg2-binary",
+    "python-jose",
+    "passlib",
+    "python-multipart",
+    "pytest",
+    "httpx",
+    "pytest-cov",
+    "pytest-asyncio",
+    "pre-commit",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.requires-plugins]
+poetry-plugin-shell = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

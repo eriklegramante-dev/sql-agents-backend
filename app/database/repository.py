@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar, Generic, Type, List
+from typing import Optional, TypeVar, Generic, Type
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -198,7 +198,7 @@ class DatabaseRepository(Generic[T]):
                     f"[database] last_login_at updated for user {user_id}"
                 )
                 return True
-            
+
             except SQLAlchemyError as e:
                 await session.rollback()
                 self.logger.log_error(f"[database] error updating last_login_at: {e}")

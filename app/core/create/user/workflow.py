@@ -44,9 +44,7 @@ class CreateUserWorkflow:
                 with an appropriate message and additional data.
         """
         self.logger.log_info("[workflow] processing create user")
-        self.logger.log_debug(
-            f"[workflow] request dto: {request.__class__.__name__}"
-        )
+        self.logger.log_debug(f"[workflow] request dto: {request.__class__.__name__}")
         user = UserTable(
             name=request.name,
             email=request.email,
