@@ -28,7 +28,7 @@ services:
       - .env
     environment:
       - APP_ENVIRONMENT=dev
-      - DATABASE_URL_DEV=postgresql+asyncpg://crud_user:123456789abcde@postgres:5432/crud_fastapi
+      - DATABASE_URL_DEV=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
       postgres:
         condition: service_healthy
