@@ -4,6 +4,7 @@ from app.models.users_table import UserRole, UserTable
 from app.routes.create.admin.dtos.dto import CreateAdminRequestDTO
 from app.routes.create.user.dtos.dto import CreateUserRequestDTO
 from app.security.policy import UserPolicy
+from app.routes.delete.user.dtos.dto import DeleteUserRequestDTO
 
 
 def user(role: UserRole) -> UserTable:
@@ -55,4 +56,110 @@ def test_future_policy_methods_return_none(fake_logger):
 
     assert policy.can_view(object(), user(UserRole.USER)) is None
     assert policy.can_update(object(), user(UserRole.USER)) is None
-    assert policy.can_delete(object(), user(UserRole.USER)) is None
+
+
+def delete_user(
+    role: UserRole = UserRole.USER,
+    user_id: int = 1,
+    email: str = "user@example.com",
+    cpf: str = "12345678901",
+) -> UserTable:
+    return UserTable(
+        id=user_id,
+        role=role,
+        email=email,
+        cpf=cpf,
+    )
+
+
+def test_can_delete_allows_admin(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(id=999)
+
+    current_user = delete_user(
+        role=UserRole.ADMIN,
+        user_id=1,
+        email="admin@example.com",
+        cpf="12345678901",
+    )
+
+    assert policy.can_delete(request, current_user) is True
+
+
+def test_can_delete_allows_user_by_own_id(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(id=1)
+
+    current_user = delete_user(user_id=1)
+
+    assert policy.can_delete(request, current_user) is True
+
+
+def test_can_delete_allows_user_by_own_email(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(email="user@example.com")
+
+    current_user = delete_user(email="user@example.com")
+
+    assert policy.can_delete(request, current_user) is True
+
+
+def test_can_delete_allows_user_by_own_cpf(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(cpf="12345678901")
+
+    current_user = delete_user(cpf="12345678901")
+
+    assert policy.can_delete(request, current_user) is True
+
+
+def test_can_delete_denies_user_with_different_id(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(id=2)
+
+    current_user = delete_user(user_id=1)
+
+    assert policy.can_delete(request, current_user) is False
+
+
+def test_can_delete_denies_user_with_different_email(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(email="other@example.com")
+
+    current_user = delete_user(email="user@example.com")
+
+    assert policy.can_delete(request, current_user) is False
+
+
+def test_can_delete_denies_user_with_different_cpf(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO(cpf="99999999999")
+
+    current_user = delete_user(cpf="12345678901")
+
+    assert policy.can_delete(request, current_user) is False
+
+
+def test_can_delete_denies_user_without_identifier(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    request = DeleteUserRequestDTO()
+
+    current_user = delete_user()
+
+    assert policy.can_delete(request, current_user) is False
+
+
+def test_policy_uses_default_logger_with_monkeypatch(monkeypatch, fake_logger):
+    monkeypatch.setattr("app.security.policy.LOGGER", fake_logger)
+
+    policy = UserPolicy()
+
+    assert policy.logger is fake_logger

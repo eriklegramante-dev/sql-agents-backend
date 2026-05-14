@@ -75,21 +75,6 @@ class DeleteUserController:
                 content=dto.model_dump(),
             )
 
-        except ValueError as e:
-
-            self.logger.log_error(str(e))
-
-            dto = DeleteUserResponseDTO(
-                success=False,
-                message=str(e),
-                deleted_user_id=None,
-            )
-
-            return JSONResponse(
-                status_code=400,
-                content=dto.model_dump(),
-            )
-
         except ValidationError as e:
 
             self.logger.log_error(
@@ -104,6 +89,21 @@ class DeleteUserController:
 
             return JSONResponse(
                 status_code=422,
+                content=dto.model_dump(),
+            )
+
+        except ValueError as e:
+
+            self.logger.log_error(str(e))
+
+            dto = DeleteUserResponseDTO(
+                success=False,
+                message=str(e),
+                deleted_user_id=None,
+            )
+
+            return JSONResponse(
+                status_code=400,
                 content=dto.model_dump(),
             )
 
