@@ -4,7 +4,6 @@ from app.models.users_table import UserTable, UserRole
 from app.routes.create.admin.dtos.dto import CreateAdminRequestDTO
 from app.routes.create.user.dtos.dto import CreateUserRequestDTO
 from app.logs.setup_logger import LoggerManager, LOGGER
-from app.routes.update.dtos.dto import UpdateUserRequestDTO
 
 
 class UserPolicy:
@@ -46,32 +45,13 @@ class UserPolicy:
         self.logger.log_info(f"[policy] User {current_user.id} denied create access.")
         return False
 
-    def can_update(
-        self,
-        request: UpdateUserRequestDTO,
-        current_user: UserTable
-        ) -> bool:
-        """
-        Validates whether the current user can update another user.
-        """
-
-        self.logger.log_debug(
-            f"[policy] validating update permission for user {current_user.id}"
-        )
-
-        if current_user.role == UserRole.ADMIN:
-            self.logger.log_info(
-                f"[policy] ADMIN {current_user.id} authorized to update users."
-            )
-            return True
-
     def can_view(self, request: object, current_user: UserTable) -> bool:
         # TODO: @Ronald
 
         pass
 
     def can_update(self, request: object, current_user: UserTable) -> bool:
-
+        """Allow users to update only their own non-privileged profile fields."""
         if request.id != current_user.id:
             self.logger.log_info(
                 f"[policy] user {current_user.id} denied update access."

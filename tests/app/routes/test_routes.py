@@ -8,6 +8,8 @@ from app.routes.create.admin import route as create_admin_route
 from app.routes.create.admin.dtos.dto import CreateAdminRequestDTO
 from app.routes.create.user import route as create_user_route
 from app.routes.create.user.dtos.dto import CreateUserRequestDTO
+from app.routes.update import route as update_route
+from app.routes.update.dtos.dto import UpdateUserRequestDTO
 
 pytestmark = pytest.mark.asyncio
 
@@ -25,6 +27,11 @@ class CreateUserController:
 class CreateAdminController:
     async def create_admin(self, request, current_user):
         return {"email": request.email, "current_user": current_user.id}
+
+
+class UpdateUserController:
+    async def update_user(self, request, current_user):
+        return {"id": request.id, "name": request.name, "current_user": current_user.id}
 
 
 @pytest.mark.asyncio
@@ -72,3 +79,18 @@ async def test_create_admin_route_delegates_to_controller(monkeypatch):
     result = await create_admin_route.create_admin(request, current_user)
 
     assert result == {"email": "admin@example.com", "current_user": 1}
+
+
+@pytest.mark.asyncio
+async def test_update_user_route_delegates_to_controller(monkeypatch):
+    monkeypatch.setattr(update_route, "UpdateUserController", UpdateUserController)
+    request = UpdateUserRequestDTO(
+        id=1,
+        name="Updated User",
+        password="Strong@123",
+    )
+    current_user = UserTable(id=1, role=UserRole.USER)
+
+    result = await update_route.update_user(request, current_user)
+
+    assert result == {"id": 1, "name": "Updated User", "current_user": 1}

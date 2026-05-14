@@ -1,3 +1,5 @@
+"""Service layer for user update workflow execution."""
+
 from typing import Optional
 
 from app.core.update.workflow import UpdateUserWorkflow
@@ -10,7 +12,12 @@ from app.routes.update.dtos.dto import (
 
 class UpdateUserService:
     """
-    Handles user update orchestration.
+    Service responsible for handling user update use cases.
+
+    This class receives validated update requests from the controller,
+    delegates execution to the workflow layer, and returns a standardized
+    response DTO.
+
     """
 
     def __init__(
@@ -18,6 +25,7 @@ class UpdateUserService:
         workflow: Optional[UpdateUserWorkflow] = None,
         logger: Optional[LoggerManager] = None,
     ) -> None:
+        """Initialize update service dependencies."""
         self.workflow = workflow or UpdateUserWorkflow()
         self.logger = logger or LOGGER
 
@@ -26,11 +34,15 @@ class UpdateUserService:
         request: UpdateUserRequestDTO,
     ) -> UpdateUserResponseDTO:
         """
-        Delegates update execution to the workflow layer.
+        Handles the user update request through the workflow layer.
+
+        Args:
+            request (UpdateUserRequestDTO): Validated update request data.
+
+        Returns:
+            UpdateUserResponseDTO: Response containing the update operation result.
         """
-        self.logger.log_info(
-            "[service] processing update user request"
-        )
+        self.logger.log_info("[service] processing update user request")
 
         result = await self.workflow.run(request)
 

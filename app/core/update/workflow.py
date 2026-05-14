@@ -1,3 +1,5 @@
+"""User update workflow for locating users and applying valid profile changes."""
+
 from typing import Any, Dict, Optional
 
 from app.database.repository import DatabaseRepository
@@ -18,17 +20,26 @@ class UpdateUserWorkflow:
         logger: Optional[LoggerManager] = None,
         password_manager: Optional[PasswordManager] = None,
     ) -> None:
+        """Initialize update workflow dependencies with default services."""
         self.repository = repository or DatabaseRepository(model=UserTable)
         self.logger = logger or LOGGER
         self.password_manager = password_manager or PasswordManager()
 
     async def run(self, request: UpdateUserRequestDTO) -> Dict[str, Any]:
+        """
+        Executes the user update workflow.
+
+        Args:
+            request (UpdateUserRequestDTO): Validated update request data.
+
+        Returns:
+            Dict[str, Any]: Operation result containing success, message, and optional data.
+        """
         self.logger.log_info("[workflow] processing user update")
 
-        user = await self.repository.find_user_dynamic(
+        user = await self.repository.search_user_by_filters(
             id=request.id,
             email=request.email,
-            cpf=request.cpf,
         )
 
         if not user:
@@ -45,7 +56,7 @@ class UpdateUserWorkflow:
 
         if request.email is not None:
             update_data["email"] = request.email
-        
+
         if request.name is not None:
             update_data["name"] = request.name
 
@@ -56,9 +67,7 @@ class UpdateUserWorkflow:
             update_data["status"] = request.status
 
         if request.password is not None:
-            hashed_password = self.password_manager.hash_password(
-                request.password
-            )
+            hashed_password = self.password_manager.hash_password(request.password)
 
             update_data["password"] = hashed_password
 
@@ -79,12 +88,10 @@ class UpdateUserWorkflow:
                 "message": "Failed to update user.",
             }
 
-        self.logger.log_info(
-            f"[workflow] user {user.id} updated successfully"
-        )
+        self.logger.log_info(f"[workflow] user {user.id} updated successfully")
 
         return {
             "success": True,
             "message": "User updated successfully.",
-            "data": {"id": user.id}
+            "data": {"id": user.id},
         }
