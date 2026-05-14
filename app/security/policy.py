@@ -62,12 +62,21 @@ class UserPolicy:
         current_user: UserTable,
     ) -> bool:
         """
-        Determines whether the current user is allowed to delete a user.
+        Determines whether the current user can delete a user.
 
-        Admin users can delete any user.
-        Standard users can delete only their own account by id, email, or cpf.
+        Allows administrators to delete any user and restricts
+        standard users to deleting only their own account using
+        id, email, or cpf.
+
+        Args:
+            request (DeleteUserRequestDTO): DTO containing the user
+                identifier used for deletion.
+            current_user (UserTable): Authenticated user requesting
+                the delete operation.
+
+        Returns:
+            bool: True when the deletion is allowed, otherwise False.
         """
-
         self.logger.log_debug(
             f"[policy] validating delete permission for {request.__class__.__name__}"
         )
