@@ -1,5 +1,3 @@
-"""HTTP controller for user profile update requests."""
-
 from typing import Optional
 
 from fastapi.responses import JSONResponse
@@ -64,28 +62,6 @@ class UpdateUserController:
         try:
             self.logger.log_info("[controller] update user request received")
 
-            if not self._has_identifier(request):
-                dto = UpdateUserResponseDTO(
-                    success=False,
-                    message="At least one identifier is required.",
-                )
-
-                return JSONResponse(
-                    status_code=400,
-                    content=dto.model_dump(),
-                )
-
-            if not self._has_update_fields(request):
-                dto = UpdateUserResponseDTO(
-                    success=False,
-                    message="No update fields were provided.",
-                )
-
-                return JSONResponse(
-                    status_code=400,
-                    content=dto.model_dump(),
-                )
-
             if not self.policy.can_update(request, current_user):
                 dto = UpdateUserResponseDTO(
                     success=False,
@@ -133,23 +109,3 @@ class UpdateUserController:
                 status_code=500,
                 content=dto.model_dump(),
             )
-
-    @staticmethod
-    def _has_identifier(request: UpdateUserRequestDTO) -> bool:
-        """Return whether the request identifies a user to update."""
-        return any(
-            [
-                request.id,
-                request.email,
-            ]
-        )
-
-    @staticmethod
-    def _has_update_fields(request: UpdateUserRequestDTO) -> bool:
-        """Return whether the request contains mutable profile fields."""
-        return any(
-            [
-                request.name,
-                request.password,
-            ]
-        )

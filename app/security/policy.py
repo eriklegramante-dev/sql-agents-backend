@@ -51,7 +51,28 @@ class UserPolicy:
         pass
 
     def can_update(self, request: object, current_user: UserTable) -> bool:
-        """Allow users to update only their own non-privileged profile fields."""
+        """
+        Validate whether the authenticated user is authorized
+        to update the requested user profile.
+
+        Applies authorization rules to ensure that users can only
+        update their own profile information and prevents
+        modification of privileged fields such as role and status.
+        The policy denies update attempts targeting other users
+        or restricted account attributes.
+
+        Args:
+            request (object):
+                Request object containing the target user identifiers
+                and update payload data.
+            current_user (UserTable):
+                Authenticated user attempting to perform the update operation.
+
+        Returns:
+            bool:
+                True when the update operation is authorized,
+                otherwise False.
+        """
         if request.id != current_user.id:
             self.logger.log_info(
                 f"[policy] user {current_user.id} denied update access."

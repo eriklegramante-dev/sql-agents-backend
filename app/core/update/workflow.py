@@ -1,5 +1,3 @@
-"""User update workflow for locating users and applying valid profile changes."""
-
 from typing import Any, Dict, Optional
 
 from app.database.repository import DatabaseRepository
@@ -11,7 +9,20 @@ from app.security.hashing import PasswordManager
 
 class UpdateUserWorkflow:
     """
-    Workflow responsible for updating users.
+    Orchestrates the user update workflow in the system.
+
+    This class manages user lookup, validation of update data,
+    password hashing when required, persistence, and workflow logging.
+    It uses dependency injection for repository, logger, and password manager
+    components to improve maintainability and testability.
+
+    Attributes:
+        repository (DatabaseRepository[UserTable]):
+            Repository responsible for database operations on users.
+        logger (LoggerManager):
+            Logger manager used for workflow logging.
+        password_manager (PasswordManager):
+            Manager responsible for password hashing operations.
     """
 
     def __init__(
@@ -29,11 +40,18 @@ class UpdateUserWorkflow:
         """
         Executes the user update workflow.
 
+        This method validates the target user, prepares the update payload,
+        hashes the password when provided, persists the updated data,
+        and logs the workflow execution steps.
+
         Args:
-            request (UpdateUserRequestDTO): Validated update request data.
+            request (UpdateUserRequestDTO):
+                DTO containing the validated user update data.
 
         Returns:
-            Dict[str, Any]: Operation result containing success, message, and optional data.
+            Dict[str, Any]:
+                Operation result containing success status,
+                message, and optional updated user data.
         """
         self.logger.log_info("[workflow] processing user update")
 

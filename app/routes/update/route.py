@@ -1,5 +1,3 @@
-"""FastAPI routes for authenticated user update operations."""
-
 from fastapi import APIRouter, Depends
 
 from app.security.security import get_current_user
@@ -25,7 +23,21 @@ async def update_user(
     current_user: UserTable = Depends(get_current_user),
 ):
     """
-    Updates user data according to authorization rules.
+    Updates user profile information through the authenticated update workflow.
+
+    Receives the validated update payload and the authenticated user context,
+    delegates authorization and update execution to the controller and service
+    layers, and returns a standardized HTTP response containing the operation result.
+
+    Args:
+        request (UpdateUserRequestDTO):
+            DTO containing validated user update data.
+        current_user (UserTable):
+            Authenticated user extracted from the access token.
+
+    Returns:
+        JSONResponse:
+            HTTP response containing the update operation result.
     """
 
     controller = UpdateUserController()

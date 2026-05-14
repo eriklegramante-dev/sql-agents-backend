@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from pydantic import ValidationError
 
 from app.core.update.workflow import UpdateUserWorkflow
 from app.models.users_table import UserRole, UserStatus
@@ -14,7 +15,10 @@ async def test_should_return_error_when_user_not_found():
 
     workflow = UpdateUserWorkflow(repository=repository)
 
-    request = UpdateUserRequestDTO(id=1)
+    request = UpdateUserRequestDTO(
+        id=1,
+        name="Denilson",
+    )
 
     result = await workflow.run(request)
 
@@ -23,21 +27,9 @@ async def test_should_return_error_when_user_not_found():
 
 
 @pytest.mark.asyncio
-async def test_should_return_error_when_no_update_data():
-    repository = AsyncMock()
-
-    user = Mock(id=1)
-
-    repository.search_user_by_filters.return_value = user
-
-    workflow = UpdateUserWorkflow(repository=repository)
-
-    request = UpdateUserRequestDTO(id=1)
-
-    result = await workflow.run(request)
-
-    assert result["success"] is False
-    assert result["message"] == "No valid update data provided."
+async def test_should_raise_validation_error_when_no_update_data():
+    with pytest.raises(ValidationError):
+        UpdateUserRequestDTO(id=1)
 
 
 @pytest.mark.asyncio

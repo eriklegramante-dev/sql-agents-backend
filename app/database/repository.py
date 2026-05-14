@@ -131,17 +131,23 @@ class DatabaseRepository(Generic[T]):
         cpf: Optional[str] = None,
     ) -> Optional[UserTable]:
         """
+        Search for a user using one or more identifier filters.
 
-            Search for a user using one or more identifier filters.
+        The query applies only the filters provided in the request
+        and returns the first matching user when found.
 
-            The query applies only the filters provided in the request.
-            Returns the first matching user, or None if no user is found.
         Args:
-            id: Optional user ID filter.
-            email: Optional user email filter.
-            cpf: Optional user CPF filter.
+            id:
+                Optional user ID filter.
+            email:
+                Optional user email filter.
+            cpf:
+                Optional user CPF filter.
+
         Returns:
-            The matching user instance if found, otherwise None.
+            Optional[UserTable]:
+                The matching user instance if found,
+                otherwise None.
         """
 
         self.logger.log_info("[database] searching user with dynamic filters")
@@ -215,7 +221,22 @@ class DatabaseRepository(Generic[T]):
         update_data: dict,
     ) -> Optional[int]:
         """
-        Updates valid user fields.
+        Updates the provided user instance with validated fields.
+
+        Applies the received update data to the target user,
+        persists the changes in the database, and returns the
+        updated user ID when the operation succeeds.
+
+        Args:
+            user (UserTable):
+                Target user instance to be updated.
+            update_data (dict):
+                Dictionary containing validated fields to update.
+
+        Returns:
+            Optional[int]:
+                The updated user ID if the operation succeeds,
+                otherwise None.
         """
 
         self.logger.log_info(f"[database] updating user {user.id}")

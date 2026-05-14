@@ -1,10 +1,8 @@
-"""Pydantic request and response models for user update operations."""
-
 from typing import Any, Optional
 
 import re
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.models.users_table import UserRole, UserStatus
 
@@ -48,6 +46,49 @@ class UpdateUserRequestDTO(BaseModel):
         None,
         description="Status to assign to the user. Optional but must be a valid status if provided.",
     )
+
+    @model_validator(mode="after")
+    def validate_update_request(self):
+        """
+        Validate request identifiers and mutable update fields.
+
+        Ensures that the request contains at least one identifier
+        to locate the target user and at least one mutable field
+        to perform the update operation.
+
+        Returns:
+            UpdateUserRequestDTO:
+                The validated DTO instance.
+
+        Raises:
+            ValueError:
+                Raised when no identifier or update field is provided.
+        """
+
+        has_identifier = any(
+            [
+                self.id,
+                self.email,
+            ]
+        )
+
+        if not has_identifier:
+            raise ValueError("At least one identifier is required.")
+
+        has_update_fields = any(
+            [
+                self.name,
+                self.email,
+                self.password,
+                self.role,
+                self.status,
+            ]
+        )
+
+        if not has_update_fields:
+            raise ValueError("No update fields were provided.")
+
+        return self
 
     @field_validator("name")
     @classmethod
