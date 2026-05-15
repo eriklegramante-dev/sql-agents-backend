@@ -140,7 +140,9 @@ class DatabaseRepository(Generic[T]):
                 successfully deleted, otherwise None.
         """
 
-        self.logger.log_info(f"[database] deleting user with filters: {filters}")
+        self.logger.log_info(
+            f"[database] deleting user with filters: {filters}"
+        )
 
         sessionmaker = self.db_connection.get_session()
 
@@ -149,13 +151,17 @@ class DatabaseRepository(Generic[T]):
                 query = select(self.model)
 
                 for field, value in filters.items():
-                    query = query.where(getattr(self.model, field) == value)
+                    query = query.where(
+                        getattr(self.model, field) == value
+                    )
 
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
 
                 if not user:
-                    self.logger.log_info("[database] delete_user: user not found")
+                    self.logger.log_info(
+                        "[database] delete_user: user not found"
+                    )
                     return None
 
                 deleted_user_id = user.id
@@ -164,12 +170,18 @@ class DatabaseRepository(Generic[T]):
                 await session.commit()
 
                 self.logger.log_info(
-                    f"[database] user deleted successfully: {deleted_user_id}"
+                    f"[database] user deleted successfully: "
+                    f"{deleted_user_id}"
                 )
 
                 return user
 
             except SQLAlchemyError as e:
                 await session.rollback()
-                self.logger.log_error(f"[database] error deleting user: {e}")
+
+                self.logger.log_error(
+                    f"[database] error deleting user: {e}"
+                )
+
                 return None
+
