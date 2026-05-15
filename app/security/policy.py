@@ -1,6 +1,6 @@
-from app.routes.delete.user.dtos.dto import DeleteUserRequestDTO
 from typing import Optional
 
+from app.routes.delete.user.dtos.dto import DeleteUserRequestDTO
 from app.models.users_table import UserTable, UserRole
 from app.routes.create.admin.dtos.dto import CreateAdminRequestDTO
 from app.routes.create.user.dtos.dto import CreateUserRequestDTO
