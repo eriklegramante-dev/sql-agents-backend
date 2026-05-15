@@ -1,13 +1,11 @@
 from typing import Optional
 
+from app.core.delete.user.workflow import DeleteUserWorkflow
+from app.logs.setup_logger import LOGGER, LoggerManager
 from app.routes.delete.user.dtos.dto import (
     DeleteUserRequestDTO,
     DeleteUserResponseDTO,
 )
-
-from app.core.delete.user.workflow import DeleteUserWorkflow
-
-from app.logs.setup_logger import LoggerManager, LOGGER
 
 
 class DeleteUserService:
@@ -61,13 +59,8 @@ class DeleteUserService:
             f"[service] workflow response: {result}"
         )
 
-        deleted_user_id = None
-
-        if result.get("data"):
-            deleted_user_id = result["data"].get("deleted_user_id")
-
         return DeleteUserResponseDTO(
             success=result.get("success", False),
             message=result.get("message"),
-            deleted_user_id=deleted_user_id,
+            data=result.get("data"),
         )

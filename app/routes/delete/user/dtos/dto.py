@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -44,7 +44,7 @@ class DeleteUserResponseDTO(BaseModel):
         description="Contextual message for the operation.",
     )
 
-    deleted_user_id: Optional[int] = Field(
+    data: Optional[Any] = Field(
         None,
-        description="Deleted user ID.",
+        description="Contains the deleted user information.",
     )

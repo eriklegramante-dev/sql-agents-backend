@@ -75,12 +75,12 @@ def test_delete_user_response_success_with_deleted_user_id():
     dto = DeleteUserResponseDTO(
         success=True,
         message="User deleted successfully.",
-        deleted_user_id=1,
+        data={"deleted_user_id": 1},
     )
 
     assert dto.success is True
     assert dto.message == "User deleted successfully."
-    assert dto.deleted_user_id == 1
+    assert dto.data["deleted_user_id"] == 1
 
 
 def test_delete_user_response_failure_without_deleted_user_id():
@@ -91,7 +91,19 @@ def test_delete_user_response_failure_without_deleted_user_id():
 
     assert dto.success is False
     assert dto.message == "User not found."
-    assert dto.deleted_user_id is None
+    assert dto.data is None
+
+
+def test_delete_user_response_accepts_empty_data_dict():
+    dto = DeleteUserResponseDTO(
+        success=True,
+        message="User deleted successfully.",
+        data={},
+    )
+
+    assert dto.success is True
+    assert dto.message == "User deleted successfully."
+    assert dto.data == {}
 
 
 def test_delete_user_response_requires_success():

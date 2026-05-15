@@ -45,7 +45,7 @@ async def test_handle_delete_success_with_deleted_user_id():
 
     assert response.success is True
     assert response.message == "User deleted successfully."
-    assert response.deleted_user_id == 1
+    assert response.data["deleted_user_id"] == 1
     assert workflow.called_with == request
 
     assert logger.infos == ["[service] processing delete user request"]
@@ -70,7 +70,7 @@ async def test_handle_delete_failure_without_data():
 
     assert response.success is False
     assert response.message == "User not found."
-    assert response.deleted_user_id is None
+    assert response.data is None
     assert workflow.called_with == request
     assert len(logger.debugs) == 2
 
@@ -94,7 +94,7 @@ async def test_handle_delete_success_with_empty_data():
 
     assert response.success is True
     assert response.message == "User deleted."
-    assert response.deleted_user_id is None
+    assert response.data == {}
 
 
 @pytest.mark.asyncio
@@ -115,7 +115,7 @@ async def test_handle_delete_default_success_false_when_missing_success():
 
     assert response.success is False
     assert response.message == "Unexpected response."
-    assert response.deleted_user_id == 99
+    assert response.data["deleted_user_id"] == 99
 
 
 @pytest.mark.asyncio
@@ -136,7 +136,7 @@ async def test_handle_delete_message_none_when_missing_message():
 
     assert response.success is True
     assert response.message is None
-    assert response.deleted_user_id == 10
+    assert response.data["deleted_user_id"] == 10
 
 
 @pytest.mark.asyncio
@@ -169,7 +169,7 @@ async def test_handle_delete_using_monkeypatch_default_dependencies(monkeypatch)
 
     assert response.success is True
     assert response.message == "Deleted with monkeypatch."
-    assert response.deleted_user_id == 7
+    assert response.data["deleted_user_id"] == 7
     assert fake_workflow.called_with == request
     assert len(fake_logger.infos) == 1
     assert len(fake_logger.debugs) == 2

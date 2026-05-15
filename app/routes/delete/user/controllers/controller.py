@@ -5,14 +5,11 @@ from pydantic import ValidationError
 
 from app.logs.setup_logger import LOGGER, LoggerManager
 from app.models.users_table import UserTable
-
 from app.routes.delete.user.dtos.dto import (
     DeleteUserRequestDTO,
     DeleteUserResponseDTO,
 )
-
 from app.routes.delete.user.services.service import DeleteUserService
-
 from app.security.policy import UserPolicy
 
 
@@ -67,7 +64,7 @@ class DeleteUserController:
             dto = DeleteUserResponseDTO(
                 success=False,
                 message=str(e),
-                deleted_user_id=None,
+                data=None,
             )
 
             return JSONResponse(
@@ -84,7 +81,7 @@ class DeleteUserController:
             dto = DeleteUserResponseDTO(
                 success=False,
                 message="Validation failed",
-                deleted_user_id=None,
+                data=None,
             )
 
             return JSONResponse(
@@ -99,7 +96,7 @@ class DeleteUserController:
             dto = DeleteUserResponseDTO(
                 success=False,
                 message=str(e),
-                deleted_user_id=None,
+                data=None,
             )
 
             return JSONResponse(
@@ -116,7 +113,7 @@ class DeleteUserController:
             dto = DeleteUserResponseDTO(
                 success=False,
                 message="Internal server error",
-                deleted_user_id=None,
+                data=None,
             )
 
             return JSONResponse(
