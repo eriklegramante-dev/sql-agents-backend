@@ -12,16 +12,17 @@ from app.logs.setup_logger import LoggerManager, LOGGER
 
 class DeleteUserService:
     """
-    Service layer responsible for handling user deletion business logic.
+    Service responsible for handling user deletion use cases.
 
-    This class coordinates the delete workflow execution
-    and converts workflow responses into DTOs.
+    This class receives validated delete requests, delegates execution
+    to the workflow layer, and converts workflow results into
+    standardized response DTOs.
 
-    Responsibilities:
-    - Receive validated DTOs
-    - Call workflow layer
-    - Return response DTOs
-    - Keep FastAPI logic outside the service layer
+    Attributes:
+        workflow (DeleteUserWorkflow): Workflow responsible for user
+            deletion rules and execution.
+        logger (LoggerManager): Logger instance for service events
+            and errors.
     """
 
     def __init__(
