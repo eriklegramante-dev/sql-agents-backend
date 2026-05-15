@@ -41,12 +41,20 @@ class DeleteUserController:
                 "[controller] delete user request received"
             )
 
-            self._validate_delete_request(request)
+            if not request.id and not request.email and not request.cpf:
+                raise ValueError(
+                    "You must provide id, email or cpf."
+                )
 
-            self._authorize_delete(
+            authorized = self.policy.can_delete(
                 request=request,
                 current_user=current_user,
             )
+
+            if not authorized:
+                raise PermissionError(
+                    "You are not authorized to delete this user."
+                )
 
             response = await self.service.handle_delete(request)
 
@@ -119,32 +127,4 @@ class DeleteUserController:
             return JSONResponse(
                 status_code=500,
                 content=dto.model_dump(),
-            )
-
-    def _validate_delete_request(
-        self,
-        request: DeleteUserRequestDTO,
-    ) -> None:
-
-        if not request.id and not request.email and not request.cpf:
-
-            raise ValueError(
-                "You must provide id, email or cpf."
-            )
-
-    def _authorize_delete(
-        self,
-        request: DeleteUserRequestDTO,
-        current_user: UserTable,
-    ) -> None:
-
-        authorized = self.policy.can_delete(
-            request=request,
-            current_user=current_user,
-        )
-
-        if not authorized:
-
-            raise PermissionError(
-                "You are not authorized to delete this user."
             )

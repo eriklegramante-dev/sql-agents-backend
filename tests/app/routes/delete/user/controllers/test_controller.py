@@ -57,7 +57,7 @@ async def test_delete_user_returns_success_response(fake_logger):
     service_response = DeleteUserResponseDTO(
         success=True,
         message="User deleted successfully.",
-        deleted_user_id=8,
+        data={"deleted_user_id": 8},
     )
 
     service = Service(response=service_response)
@@ -86,7 +86,7 @@ async def test_delete_user_returns_bad_request_when_service_fails(fake_logger):
     service_response = DeleteUserResponseDTO(
         success=False,
         message="User not found or could not be deleted.",
-        deleted_user_id=None,
+        data=None,
     )
 
     controller = DeleteUserController(
@@ -155,52 +155,6 @@ async def test_delete_user_returns_internal_server_error(fake_logger):
     assert response.status_code == 500
 
 
-def test_validate_delete_request_raises_value_error(fake_logger):
-    controller = DeleteUserController(
-        service=Service(),
-        logger=fake_logger,
-    )
-
-    with pytest.raises(ValueError, match="You must provide id, email or cpf."):
-        controller._validate_delete_request(
-            create_request(
-                user_id=None,
-                email=None,
-                cpf=None,
-            )
-        )
-
-
-def test_authorize_delete_raises_permission_error(fake_logger):
-    controller = DeleteUserController(
-        service=Service(),
-        policy=Policy(authorized=False),
-        logger=fake_logger,
-    )
-
-    with pytest.raises(
-        PermissionError,
-        match="You are not authorized to delete this user.",
-    ):
-        controller._authorize_delete(
-            request=create_request(user_id=2),
-            current_user=CurrentUser(user_id=1),
-        )
-
-
-def test_authorize_delete_does_not_raise_when_authorized(fake_logger):
-    controller = DeleteUserController(
-        service=Service(),
-        policy=Policy(authorized=True),
-        logger=fake_logger,
-    )
-
-    controller._authorize_delete(
-        request=create_request(user_id=1),
-        current_user=CurrentUser(user_id=1),
-    )
-
-
 class ServiceWithValidationError:
     async def handle_delete(self, request):
         raise ValidationError.from_exception_data(
@@ -243,7 +197,7 @@ async def test_controller_uses_default_dependencies_with_monkeypatch(
     service_response = DeleteUserResponseDTO(
         success=True,
         message="Deleted with default dependencies.",
-        deleted_user_id=8,
+        data={"deleted_user_id": 8},
     )
 
     fake_service = Service(response=service_response)
