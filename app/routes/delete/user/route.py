@@ -33,14 +33,20 @@ async def delete_user(
     current_user: UserTable = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Endpoint responsible for deleting users.
+    Deletes a user account for the authenticated user.
 
-    Responsibilities:
-    - Receive validated delete DTO
-    - Inject authenticated user
-    - Delegate processing to controller
+    Receives the delete request payload, validates the authenticated
+    user context, and delegates the delete operation to the controller layer.
 
-    Authorization rules are handled by UserPolicy.
+    Args:
+        user_data (DeleteUserRequestDTO): DTO containing the user
+            identifier used for deletion.
+        current_user (UserTable): Authenticated user performing
+            the delete operation.
+
+    Returns:
+        JSONResponse: Standardized HTTP response containing the
+            delete operation result.
     """
 
     controller = DeleteUserController()
