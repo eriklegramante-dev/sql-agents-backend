@@ -34,6 +34,23 @@ class DeleteUserController:
         request: DeleteUserRequestDTO,
         current_user: UserTable,
     ) -> JSONResponse:
+        """
+        Deletes a user account for the authenticated user.
+
+        Receives the validated delete request payload, verifies
+        authorization rules, delegates the operation to the service
+        layer, and returns a standardized HTTP response.
+
+        Args:
+            request (DeleteUserRequestDTO): DTO containing the user
+                identifier used for deletion.
+            current_user (UserTable): Authenticated user performing
+                the delete operation.
+
+        Returns:
+            JSONResponse: Standardized HTTP response containing the
+                delete operation result.
+        """
 
         try:
 
