@@ -124,6 +124,64 @@ class DatabaseRepository(Generic[T]):
             self.logger.log_debug(f"[database] get_user_by_email result: {user}")
             return user
 
+    async def search_user_by_filters(
+        self,
+        id: Optional[int] = None,
+        email: Optional[str] = None,
+        cpf: Optional[str] = None,
+    ) -> Optional[UserTable]:
+        """
+        Search for a user using one or more identifier filters.
+
+        The query applies only the filters provided in the request
+        and returns the first matching user when found.
+
+        Args:
+            id:
+                Optional user ID filter.
+            email:
+                Optional user email filter.
+            cpf:
+                Optional user CPF filter.
+
+        Returns:
+            Optional[UserTable]:
+                The matching user instance if found,
+                otherwise None.
+        """
+
+        self.logger.log_info("[database] searching user with dynamic filters")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                query = select(self.model)
+
+                if id is not None:
+                    query = query.where(self.model.id == id)
+
+                elif email is not None:
+                    query = query.where(self.model.email == email)
+
+                elif cpf is not None:
+                    query = query.where(self.model.cpf == cpf)
+
+                result = await session.execute(query)
+
+                user = result.scalar_one_or_none()
+
+                self.logger.log_debug(f"[database] dynamic search result: {user}")
+
+                return user
+
+            except SQLAlchemyError as e:
+                self.logger.log_error(
+                    f"[database] error searching user dynamically: {e}"
+                )
+
+                return None
+
     async def update_last_login_at(self, user_id: int) -> bool:
         """
         Updates the last_login_at field for a user after successful authentication.
@@ -156,3 +214,57 @@ class DatabaseRepository(Generic[T]):
                 await session.rollback()
                 self.logger.log_error(f"[database] error updating last_login_at: {e}")
                 return False
+
+    async def update_user(
+        self,
+        user: UserTable,
+        update_data: dict,
+    ) -> Optional[int]:
+        """
+        Updates the provided user instance with validated fields.
+
+        Applies the received update data to the target user,
+        persists the changes in the database, and returns the
+        updated user ID when the operation succeeds.
+
+        Args:
+            user (UserTable):
+                Target user instance to be updated.
+            update_data (dict):
+                Dictionary containing validated fields to update.
+
+        Returns:
+            Optional[int]:
+                The updated user ID if the operation succeeds,
+                otherwise None.
+        """
+
+        self.logger.log_info(f"[database] updating user {user.id}")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                db_user = await session.get(self.model, user.id)
+
+                if not db_user:
+                    self.logger.log_info("[database] user not found for update")
+
+                    return None
+
+                for field, value in update_data.items():
+                    setattr(db_user, field, value)
+
+                await session.commit()
+                await session.refresh(db_user)
+
+                self.logger.log_info(f"[database] user {user.id} updated successfully")
+
+                return db_user.id
+
+            except SQLAlchemyError as e:
+                await session.rollback()
+
+                self.logger.log_error(f"[database] error updating user: {e}")
+
+                return None

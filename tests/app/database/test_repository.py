@@ -32,7 +32,12 @@ class Engine:
 
 
 class Session:
-    def __init__(self, record=None, execute_result=None, raises=None):
+    def __init__(
+        self,
+        record=None,
+        execute_result=None,
+        raises=None,
+    ):
         self.record = record
         self.execute_result = execute_result
         self.raises = raises
@@ -52,6 +57,7 @@ class Session:
     async def commit(self):
         if self.raises == "commit":
             raise SQLAlchemyError("boom")
+
         self.committed = True
 
     async def refresh(self, instance):
@@ -64,11 +70,13 @@ class Session:
     async def get(self, model, record_id):
         if self.raises == "get":
             raise SQLAlchemyError("boom")
+
         return self.record
 
     async def execute(self, statement):
         if self.raises == "execute":
             raise SQLAlchemyError("boom")
+
         return self.execute_result
 
 
@@ -114,11 +122,13 @@ async def test_create_tables_returns_false_on_error(fake_logger):
 @pytest.mark.asyncio
 async def test_insert_returns_record_id(fake_logger):
     session = Session()
+
     repository = DatabaseRepository(
         db_connection=Connection(session=session),
         logger=fake_logger,
         model=UserTable,
     )
+
     instance = SimpleNamespace(id=None)
 
     assert await repository.insert(instance) == 10
@@ -127,6 +137,7 @@ async def test_insert_returns_record_id(fake_logger):
 @pytest.mark.asyncio
 async def test_insert_returns_none_on_error(fake_logger):
     session = Session(raises="commit")
+
     repository = DatabaseRepository(
         db_connection=Connection(session=session),
         logger=fake_logger,
@@ -140,6 +151,7 @@ async def test_insert_returns_none_on_error(fake_logger):
 @pytest.mark.asyncio
 async def test_get_by_id_returns_record(fake_logger):
     record = UserTable(id=1)
+
     repository = DatabaseRepository(
         db_connection=Connection(session=Session(record=record)),
         logger=fake_logger,
@@ -163,6 +175,7 @@ async def test_get_by_id_returns_none_on_error(fake_logger):
 @pytest.mark.asyncio
 async def test_get_user_by_email_returns_user(fake_logger):
     user = UserTable(id=1, email="user@example.com")
+
     repository = DatabaseRepository(
         db_connection=Connection(session=Session(execute_result=Result(user))),
         logger=fake_logger,
@@ -173,8 +186,71 @@ async def test_get_user_by_email_returns_user(fake_logger):
 
 
 @pytest.mark.asyncio
+async def test_search_user_by_filters_with_id(fake_logger):
+    user = UserTable(id=1)
+
+    repository = DatabaseRepository(
+        db_connection=Connection(session=Session(execute_result=Result(user))),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.search_user_by_filters(id=1)
+
+    assert result is user
+
+
+@pytest.mark.asyncio
+async def test_search_user_by_filters_with_email(fake_logger):
+    user = UserTable(id=1, email="user@example.com")
+
+    repository = DatabaseRepository(
+        db_connection=Connection(session=Session(execute_result=Result(user))),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.search_user_by_filters(email="user@example.com")
+
+    assert result is user
+
+
+@pytest.mark.asyncio
+async def test_search_user_by_filters_with_cpf(fake_logger):
+    user = UserTable(id=1)
+
+    user.cpf = "12345678900"
+
+    repository = DatabaseRepository(
+        db_connection=Connection(session=Session(execute_result=Result(user))),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.search_user_by_filters(cpf="12345678900")
+
+    assert result is user
+
+
+@pytest.mark.asyncio
+async def test_search_user_by_filters_returns_none_on_error(
+    fake_logger,
+):
+    repository = DatabaseRepository(
+        db_connection=Connection(session=Session(raises="execute")),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.search_user_by_filters(id=1)
+
+    assert result is None
+
+
+@pytest.mark.asyncio
 async def test_update_last_login_at_returns_true(fake_logger):
     user = UserTable(id=1)
+
     repository = DatabaseRepository(
         db_connection=Connection(session=Session(record=user)),
         logger=fake_logger,
@@ -186,7 +262,9 @@ async def test_update_last_login_at_returns_true(fake_logger):
 
 
 @pytest.mark.asyncio
-async def test_update_last_login_at_returns_false_when_user_missing(fake_logger):
+async def test_update_last_login_at_returns_false_when_user_missing(
+    fake_logger,
+):
     repository = DatabaseRepository(
         db_connection=Connection(session=Session(record=None)),
         logger=fake_logger,
@@ -197,8 +275,11 @@ async def test_update_last_login_at_returns_false_when_user_missing(fake_logger)
 
 
 @pytest.mark.asyncio
-async def test_update_last_login_at_returns_false_on_error(fake_logger):
+async def test_update_last_login_at_returns_false_on_error(
+    fake_logger,
+):
     session = Session(raises="get")
+
     repository = DatabaseRepository(
         db_connection=Connection(session=session),
         logger=fake_logger,
@@ -206,4 +287,69 @@ async def test_update_last_login_at_returns_false_on_error(fake_logger):
     )
 
     assert await repository.update_last_login_at(1) is False
+    assert session.rolled_back is True
+
+
+@pytest.mark.asyncio
+async def test_update_user_returns_user_id(fake_logger):
+    user = UserTable(id=1)
+
+    session = Session(record=user)
+
+    repository = DatabaseRepository(
+        db_connection=Connection(session=session),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.update_user(
+        user=user,
+        update_data={"name": "Updated Name"},
+    )
+
+    assert result == 1
+    assert user.name == "Updated Name"
+
+
+@pytest.mark.asyncio
+async def test_update_user_returns_none_when_user_not_found(
+    fake_logger,
+):
+    session = Session(record=None)
+
+    repository = DatabaseRepository(
+        db_connection=Connection(session=session),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.update_user(
+        user=UserTable(id=1),
+        update_data={"name": "Updated Name"},
+    )
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_update_user_returns_none_on_error(fake_logger):
+    user = UserTable(id=1)
+
+    session = Session(
+        record=user,
+        raises="commit",
+    )
+
+    repository = DatabaseRepository(
+        db_connection=Connection(session=session),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.update_user(
+        user=user,
+        update_data={"name": "Updated Name"},
+    )
+
+    assert result is None
     assert session.rolled_back is True

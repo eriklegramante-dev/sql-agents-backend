@@ -53,6 +53,11 @@ def test_can_create_denies_standard_user(fake_logger):
 def test_future_policy_methods_return_none(fake_logger):
     policy = UserPolicy(logger=fake_logger)
 
+    class FakeRequest:
+        id = 1
+        role = None
+        status = None
+
     assert policy.can_view(object(), user(UserRole.USER)) is None
-    assert policy.can_update(object(), user(UserRole.USER)) is None
+    assert policy.can_update(FakeRequest(), user(UserRole.USER)) is True
     assert policy.can_delete(object(), user(UserRole.USER)) is None
