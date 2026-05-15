@@ -16,6 +16,19 @@ from app.security.policy import UserPolicy
 class DeleteUserController:
     """
     Controller responsible for handling user deletion requests.
+
+    This class validates request-level constraints, verifies
+    authorization rules through the policy layer, delegates
+    execution to the service layer, and returns standardized
+    HTTP responses for the delete user flow.
+
+    Attributes:
+        service (DeleteUserService): Service responsible for
+            delete user business logic.
+        policy (UserPolicy): Policy responsible for authorization
+            rules validation.
+        logger (LoggerManager): Logger instance for controller
+            events and errors.
     """
 
     def __init__(
