@@ -125,7 +125,19 @@ class DatabaseRepository(Generic[T]):
 
     async def delete_user(self, filters: dict) -> Optional[T]:
         """
-        Deletes a user using dynamic filters.
+        Deletes a user using dynamic filter criteria.
+
+        Applies the provided filters to locate the target user,
+        performs the delete operation, and returns the deleted
+        entity when the operation succeeds.
+
+        Args:
+            filters (dict): Dictionary containing dynamic search
+                filters used to locate the user.
+
+        Returns:
+            Optional[T]: Deleted entity instance when found and
+                successfully deleted, otherwise None.
         """
 
         self.logger.log_info(f"[database] deleting user with filters: {filters}")
