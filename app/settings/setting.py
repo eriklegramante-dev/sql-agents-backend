@@ -35,7 +35,7 @@ class DatabaseSettings(BaseSettings):
 
 
 class SentrySettings(BaseSettings):
-    dns: str
+    dns: str | None = None
 
     model_config = {
         "env_prefix": "SENTRY_",
