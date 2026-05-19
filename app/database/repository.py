@@ -16,6 +16,14 @@ T = TypeVar("T")
 class DatabaseRepository(Generic[T]):
     """
     Generic repository class for handling asynchronous database operations.
+
+    Provides CRUD operations for any SQLAlchemy model, with support for logging and
+    customizable database connections and models.
+
+    Attributes:
+        logger (LoggerManager): Logger instance for recording database events and errors.
+        db_connection (DatabaseConnection): Manages the async database engine and sessionmaker.
+        model (Type[T]): The SQLAlchemy model class this repository operates on.
     """
 
     def __init__(
@@ -29,6 +37,12 @@ class DatabaseRepository(Generic[T]):
         self.model = model or UserTable
 
     async def create_tables(self) -> bool:
+        """
+        Asynchronously creates all database tables defined in the model's metadata.
+
+        Returns:
+            bool: True if tables were created successfully, False otherwise.
+        """
         self.logger.log_info("[database] creating all tables")
 
         try:
@@ -42,6 +56,15 @@ class DatabaseRepository(Generic[T]):
             return False
 
     async def insert(self, instance: T) -> Optional[int]:
+        """
+        Inserts a new record into the database.
+
+        Args:
+            instance (T): An instance of the model to be inserted.
+
+        Returns:
+            Optional[int]: The ID of the newly inserted record, or None if insertion fails.
+        """
         self.logger.log_info("[database] inserting record")
         sessionmaker = self.db_connection.get_session()
 
@@ -64,6 +87,15 @@ class DatabaseRepository(Generic[T]):
                 return None
 
     async def get_by_id(self, record_id: int) -> Optional[T]:
+        """
+        Retrieves a record by its primary key.
+
+        Args:
+            record_id (int): The primary key ID of the record to retrieve.
+
+        Returns:
+            Optional[T]: The record instance if found, otherwise None.
+        """
         self.logger.log_info(f"[database] retrieving record by id: {record_id}")
         sessionmaker = self.db_connection.get_session()
 
@@ -80,6 +112,15 @@ class DatabaseRepository(Generic[T]):
                 return None
 
     async def get_user_by_email(self, email: str) -> Optional[UserTable]:
+        """
+        Retrieves a user record by its email address.
+
+        Args:
+            email (str): The email address of the user to retrieve.
+
+        Returns:
+            Optional[UserTable]: The user instance if found, otherwise None.
+        """
         self.logger.log_info(f"[database] retrieving user by email: {email}")
         sessionmaker = self.db_connection.get_session()
 
@@ -94,7 +135,74 @@ class DatabaseRepository(Generic[T]):
 
             return user
 
+    async def search_user_by_filters(
+        self,
+        id: Optional[int] = None,
+        email: Optional[str] = None,
+        cpf: Optional[str] = None,
+    ) -> Optional[UserTable]:
+        """
+        Search for a user using one or more identifier filters.
+
+        The query applies only the filters provided in the request
+        and returns the first matching user when found.
+
+        Args:
+            id:
+                Optional user ID filter.
+            email:
+                Optional user email filter.
+            cpf:
+                Optional user CPF filter.
+
+        Returns:
+            Optional[UserTable]:
+                The matching user instance if found,
+                otherwise None.
+        """
+
+        self.logger.log_info("[database] searching user with dynamic filters")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                query = select(self.model)
+
+                if id is not None:
+                    query = query.where(self.model.id == id)
+
+                elif email is not None:
+                    query = query.where(self.model.email == email)
+
+                elif cpf is not None:
+                    query = query.where(self.model.cpf == cpf)
+
+                result = await session.execute(query)
+
+                user = result.scalar_one_or_none()
+
+                self.logger.log_debug(f"[database] dynamic search result: {user}")
+
+                return user
+
+            except SQLAlchemyError as e:
+                self.logger.log_error(
+                    f"[database] error searching user dynamically: {e}"
+                )
+
+                return None
+
     async def update_last_login_at(self, user_id: int) -> bool:
+        """
+        Updates the last_login_at field for a user after successful authentication.
+
+        Args:
+            user_id (int): The user's ID.
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+        """
         self.logger.log_info(f"[database] updating last_login_at for user {user_id}")
         sessionmaker = self.db_connection.get_session()
 
@@ -123,6 +231,60 @@ class DatabaseRepository(Generic[T]):
                 self.logger.log_error(f"[database] error updating last_login_at: {e}")
                 return False
 
+    async def update_user(
+        self,
+        user: UserTable,
+        update_data: dict,
+    ) -> Optional[int]:
+        """
+        Updates the provided user instance with validated fields.
+
+        Applies the received update data to the target user,
+        persists the changes in the database, and returns the
+        updated user ID when the operation succeeds.
+
+        Args:
+            user (UserTable):
+                Target user instance to be updated.
+            update_data (dict):
+                Dictionary containing validated fields to update.
+
+        Returns:
+            Optional[int]:
+                The updated user ID if the operation succeeds,
+                otherwise None.
+        """
+
+        self.logger.log_info(f"[database] updating user {user.id}")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                db_user = await session.get(self.model, user.id)
+
+                if not db_user:
+                    self.logger.log_info("[database] user not found for update")
+
+                    return None
+
+                for field, value in update_data.items():
+                    setattr(db_user, field, value)
+
+                await session.commit()
+                await session.refresh(db_user)
+
+                self.logger.log_info(f"[database] user {user.id} updated successfully")
+
+                return db_user.id
+
+            except SQLAlchemyError as e:
+                await session.rollback()
+
+                self.logger.log_error(f"[database] error updating user: {e}")
+
+                return None
+
     async def delete_user(self, filters: dict) -> Optional[T]:
         """
         Deletes a user using dynamic filter criteria.
@@ -140,9 +302,7 @@ class DatabaseRepository(Generic[T]):
                 successfully deleted, otherwise None.
         """
 
-        self.logger.log_info(
-            f"[database] deleting user with filters: {filters}"
-        )
+        self.logger.log_info(f"[database] deleting user with filters: {filters}")
 
         sessionmaker = self.db_connection.get_session()
 
@@ -151,17 +311,13 @@ class DatabaseRepository(Generic[T]):
                 query = select(self.model)
 
                 for field, value in filters.items():
-                    query = query.where(
-                        getattr(self.model, field) == value
-                    )
+                    query = query.where(getattr(self.model, field) == value)
 
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
 
                 if not user:
-                    self.logger.log_info(
-                        "[database] delete_user: user not found"
-                    )
+                    self.logger.log_info("[database] delete_user: user not found")
                     return None
 
                 deleted_user_id = user.id
@@ -170,8 +326,7 @@ class DatabaseRepository(Generic[T]):
                 await session.commit()
 
                 self.logger.log_info(
-                    f"[database] user deleted successfully: "
-                    f"{deleted_user_id}"
+                    f"[database] user deleted successfully: " f"{deleted_user_id}"
                 )
 
                 return user
@@ -179,9 +334,6 @@ class DatabaseRepository(Generic[T]):
             except SQLAlchemyError as e:
                 await session.rollback()
 
-                self.logger.log_error(
-                    f"[database] error deleting user: {e}"
-                )
+                self.logger.log_error(f"[database] error deleting user: {e}")
 
                 return None
-

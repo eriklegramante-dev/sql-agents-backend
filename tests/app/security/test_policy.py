@@ -55,7 +55,6 @@ def test_future_policy_methods_return_none(fake_logger):
     policy = UserPolicy(logger=fake_logger)
 
     assert policy.can_view(object(), user(UserRole.USER)) is None
-    assert policy.can_update(object(), user(UserRole.USER)) is None
 
 
 def delete_user(
@@ -163,3 +162,14 @@ def test_policy_uses_default_logger_with_monkeypatch(monkeypatch, fake_logger):
     policy = UserPolicy()
 
     assert policy.logger is fake_logger
+
+
+def test_can_update_allows_user_to_update_own_profile(fake_logger):
+    policy = UserPolicy(logger=fake_logger)
+
+    class FakeRequest:
+        id = 1
+        role = None
+        status = None
+
+    assert policy.can_update(FakeRequest(), user(UserRole.USER)) is True

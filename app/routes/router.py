@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 
 from app.routes.auth.route import router as auth_router
+from app.routes.update.route import router as update_router
+
 
 from app.routes.create.user.route import (
     router as create_router,
@@ -22,6 +24,7 @@ api_router.include_router(
     prefix="/api/v1",
     tags=["Auth"],
 )
+api_router.include_router(update_router, prefix="/api/v1", tags=["Update"])
 
 api_router.include_router(
     create_admin_router,

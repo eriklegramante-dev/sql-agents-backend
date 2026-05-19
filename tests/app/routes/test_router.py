@@ -7,3 +7,4 @@ def test_api_router_includes_expected_routes():
     assert "/api/v1/token" in paths
     assert "/api/v1/create" in paths
     assert "/api/v1/create-admin" in paths
+    assert "/api/v1/update" in paths
