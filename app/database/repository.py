@@ -337,3 +337,63 @@ class DatabaseRepository(Generic[T]):
                 self.logger.log_error(f"[database] error deleting user: {e}")
 
                 return None
+
+    async def get_recent_history_by_user_id(
+        self,
+        user_id: int,
+        limit: int = 5,
+    ):
+        """
+        Retrieve recent history entries
+        for a specific authenticated user.
+
+        This method filters history records
+        by user identifier, orders results
+        by creation date in descending order,
+        and limits the number of returned entries.
+
+        Args:
+            user_id:
+                Authenticated user identifier used
+                to filter history entries.
+
+            limit:
+                Maximum number of recent history
+                entries to retrieve.
+
+        Returns:
+            list[T]:
+                List containing the user's most
+                    recent history entries ordered
+                from newest to oldest.
+        """
+
+        self.logger.log_info(f"[database] retrieving recent history for user {user_id}")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                query = (
+                    select(self.model)
+                    .where(self.model.user_id == user_id)
+                    .order_by(self.model.created_at.desc())
+                    .limit(limit)
+                )
+
+                result = await session.execute(query)
+
+                history_entries = result.scalars().all()
+
+                self.logger.log_info(
+                    f"[database] retrieved {len(history_entries)} recent history entries"
+                )
+
+                return history_entries
+
+            except SQLAlchemyError as e:
+                self.logger.log_error(
+                    f"[database] error retrieving recent history: {e}"
+                )
+
+                return []

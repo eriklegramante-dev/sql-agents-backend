@@ -23,15 +23,21 @@ def test_hash_and_verify_password(fake_logger):
 
     assert hashed == "hashed::Strong@123"
 
-    assert manager.verify_password(
-        "Strong@123",
-        hashed,
-    ) is True
+    assert (
+        manager.verify_password(
+            "Strong@123",
+            hashed,
+        )
+        is True
+    )
 
-    assert manager.verify_password(
-        "Wrong@123",
-        hashed,
-    ) is False
+    assert (
+        manager.verify_password(
+            "Wrong@123",
+            hashed,
+        )
+        is False
+    )
 
 
 def test_hash_password_logs_messages(fake_logger):
