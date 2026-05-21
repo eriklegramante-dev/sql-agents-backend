@@ -49,15 +49,11 @@ class DeleteUserService:
 
         self.logger.log_info("[service] processing delete user request")
 
-        self.logger.log_debug(
-            f"[service] request dto: {request.__class__.__name__}"
-        )
+        self.logger.log_debug(f"[service] request dto: {request.__class__.__name__}")
 
         result = await self.workflow.run(request)
 
-        self.logger.log_debug(
-            f"[service] workflow response: {result}"
-        )
+        self.logger.log_debug(f"[service] workflow response: {result}")
 
         return DeleteUserResponseDTO(
             success=result.get("success", False),
