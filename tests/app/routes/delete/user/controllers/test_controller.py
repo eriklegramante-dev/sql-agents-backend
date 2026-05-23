@@ -165,9 +165,7 @@ class ServiceWithValidationError:
                     "loc": ("cpf",),
                     "msg": "CPF must contain only digits.",
                     "input": "invalid-cpf",
-                    "ctx": {
-                        "error": ValueError("CPF must contain only digits.")
-                    },
+                    "ctx": {"error": ValueError("CPF must contain only digits.")},
                 }
             ],
         )

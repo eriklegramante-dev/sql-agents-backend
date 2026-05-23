@@ -37,7 +37,6 @@ class DeleteUserController:
         policy: Optional[UserPolicy] = None,
         logger: Optional[LoggerManager] = None,
     ) -> None:
-
         self.service = service or DeleteUserService()
         self.policy = policy or UserPolicy()
         self.logger = logger or LOGGER
@@ -66,15 +65,10 @@ class DeleteUserController:
         """
 
         try:
-
-            self.logger.log_info(
-                "[controller] delete user request received"
-            )
+            self.logger.log_info("[controller] delete user request received")
 
             if not request.id and not request.email and not request.cpf:
-                raise ValueError(
-                    "You must provide id, email or cpf."
-                )
+                raise ValueError("You must provide id, email or cpf.")
 
             authorized = self.policy.can_delete(
                 request=request,
@@ -82,9 +76,7 @@ class DeleteUserController:
             )
 
             if not authorized:
-                raise PermissionError(
-                    "You are not authorized to delete this user."
-                )
+                raise PermissionError("You are not authorized to delete this user.")
 
             response = await self.service.handle_delete(request)
 
@@ -96,7 +88,6 @@ class DeleteUserController:
             )
 
         except PermissionError as e:
-
             self.logger.log_error(str(e))
 
             dto = DeleteUserResponseDTO(
@@ -111,10 +102,7 @@ class DeleteUserController:
             )
 
         except ValidationError as e:
-
-            self.logger.log_error(
-                f"[controller] validation error: {e.errors()}"
-            )
+            self.logger.log_error(f"[controller] validation error: {e.errors()}")
 
             dto = DeleteUserResponseDTO(
                 success=False,
@@ -128,7 +116,6 @@ class DeleteUserController:
             )
 
         except ValueError as e:
-
             self.logger.log_error(str(e))
 
             dto = DeleteUserResponseDTO(
@@ -143,10 +130,7 @@ class DeleteUserController:
             )
 
         except Exception as e:
-
-            self.logger.log_error(
-                f"[controller] internal error: {str(e)}"
-            )
+            self.logger.log_error(f"[controller] internal error: {str(e)}")
 
             dto = DeleteUserResponseDTO(
                 success=False,

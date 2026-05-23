@@ -45,9 +45,7 @@ class DeleteUserWorkflow:
         """
 
         self.logger.log_info("[workflow] processing delete user")
-        self.logger.log_debug(
-            f"[workflow] request dto: {request.__class__.__name__}"
-        )
+        self.logger.log_debug(f"[workflow] request dto: {request.__class__.__name__}")
 
         filters = {}
 
@@ -78,7 +76,5 @@ class DeleteUserWorkflow:
         return {
             "success": True,
             "message": "User deleted successfully.",
-            "data": {
-                "deleted_user_id": deleted_user.id
-            },
+            "data": {"deleted_user_id": deleted_user.id},
         }

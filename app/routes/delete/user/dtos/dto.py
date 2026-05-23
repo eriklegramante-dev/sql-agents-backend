@@ -4,7 +4,6 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class DeleteUserRequestDTO(BaseModel):
-
     id: Optional[int] = Field(
         None,
         description="User ID used for deletion.",
@@ -25,7 +24,6 @@ class DeleteUserRequestDTO(BaseModel):
     @field_validator("cpf")
     @classmethod
     def validate_cpf(cls, value: Optional[str]) -> Optional[str]:
-
         if value is not None and not value.isdigit():
             raise ValueError("CPF must contain only digits.")
 
@@ -33,7 +31,6 @@ class DeleteUserRequestDTO(BaseModel):
 
 
 class DeleteUserResponseDTO(BaseModel):
-
     success: bool = Field(
         ...,
         description="Indicates if the operation was successful.",

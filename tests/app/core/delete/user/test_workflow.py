@@ -66,9 +66,7 @@ async def test_run_deletes_user_by_email_successfully(fake_logger):
         logger=fake_logger,
     )
 
-    result = await workflow.run(
-        create_request(email="standard@example.com")
-    )
+    result = await workflow.run(create_request(email="standard@example.com"))
 
     assert result == {
         "success": True,
@@ -91,9 +89,7 @@ async def test_run_deletes_user_by_cpf_successfully(fake_logger):
         logger=fake_logger,
     )
 
-    result = await workflow.run(
-        create_request(cpf="12345678901")
-    )
+    result = await workflow.run(create_request(cpf="12345678901"))
 
     assert result == {
         "success": True,
