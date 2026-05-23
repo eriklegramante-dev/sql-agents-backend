@@ -337,3 +337,68 @@ class DatabaseRepository(Generic[T]):
                 self.logger.log_error(f"[database] error deleting user: {e}")
 
                 return None
+
+    async def delete_oldest_chat_history_by_user_id(
+        self,
+        user_id: int,
+    ) -> Optional[T]:
+        """
+        Deletes the oldest chat history record for a specific user.
+
+        Searches for the oldest chat history entry associated with the
+        provided user ID, deletes the record safely, and returns the
+        deleted entity when the operation succeeds.
+
+        Args:
+            user_id (int):
+                Identifier of the user who owns the chat history.
+
+        Returns:
+            Optional[T]:
+                Deleted chat history entity when found and successfully
+                deleted, otherwise None.
+        """
+
+        self.logger.log_info(
+            f"[database] deleting oldest chat history for user {user_id}"
+        )
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                query = (
+                    select(self.model)
+                    .where(self.model.user_id == user_id)
+                    .order_by(self.model.created_at.asc())
+                )
+
+                result = await session.execute(query)
+
+                history = result.scalars().first()
+
+                if not history:
+                    self.logger.log_info(
+                        "[database] no chat history found for deletion"
+                    )
+
+                    return None
+
+                deleted_history_id = history.id
+
+                await session.delete(history)
+                await session.commit()
+
+                self.logger.log_info(
+                    "[database] oldest chat history deleted successfully: "
+                    f"{deleted_history_id}"
+                )
+
+                return history
+
+            except SQLAlchemyError as e:
+                await session.rollback()
+
+                self.logger.log_error(f"[database] error deleting chat history: {e}")
+
+                return None

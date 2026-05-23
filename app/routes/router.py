@@ -3,7 +3,6 @@ from fastapi import APIRouter
 from app.routes.auth.route import router as auth_router
 from app.routes.update.route import router as update_router
 
-
 from app.routes.create.user.route import (
     router as create_router,
 )
@@ -14,6 +13,10 @@ from app.routes.create.admin.route import (
 
 from app.routes.delete.user.route import (
     router as delete_user_router,
+)
+
+from app.routes.delete.history.route import (
+    router as delete_history_router,
 )
 
 
@@ -42,4 +45,10 @@ api_router.include_router(
     delete_user_router,
     prefix="/api/v1",
     tags=["Delete Users"],
+)
+
+api_router.include_router(
+    delete_history_router,
+    prefix="/api/v1",
+    tags=["Delete History"],
 )
