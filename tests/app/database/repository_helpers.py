@@ -86,6 +86,12 @@ class Result:
     def scalar_one_or_none(self):
         return self.record
 
+    def scalars(self):
+        return self
+
+    def first(self):
+        return self.record
+
 
 class Connection:
     def __init__(self, session=None, engine=None):

@@ -17,6 +17,10 @@ from app.routes.delete.user.route import (
     router as delete_user_router,
 )
 
+from app.routes.delete.history.route import (
+    router as delete_history_router,
+)
+
 
 api_router = APIRouter()
 
@@ -38,6 +42,12 @@ api_router.include_router(
     delete_user_router,
     prefix="/api/v1",
     tags=["Delete Users"],
+)
+
+api_router.include_router(
+    delete_history_router,
+    prefix="/api/v1",
+    tags=["Delete History"],
 )
 
 api_router.include_router(create_router, prefix="/api/v1", tags=["Users"])
