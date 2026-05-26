@@ -207,3 +207,59 @@ async def test_update_last_login_at_returns_false_on_error(fake_logger):
 
     assert await repository.update_last_login_at(1) is False
     assert session.rolled_back is True
+
+
+class ReadResult:
+
+    def __init__(self, users):
+        self.users = users
+
+    def scalars(self):
+        return self
+
+    def all(self):
+        return self.users
+
+
+@pytest.mark.asyncio
+async def test_read_user_returns_users(fake_logger):
+
+    users = [
+        UserTable(id=1),
+    ]
+
+    repository = DatabaseRepository(
+        db_connection=Connection(
+            session=Session(
+                execute_result=ReadResult(users)
+            )
+        ),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.read_user(
+        {"id": 1}
+    )
+
+    assert result == users
+
+
+@pytest.mark.asyncio
+async def test_read_user_returns_none_on_error(fake_logger):
+
+    repository = DatabaseRepository(
+        db_connection=Connection(
+            session=Session(
+                raises="execute"
+            )
+        ),
+        logger=fake_logger,
+        model=UserTable,
+    )
+
+    result = await repository.read_user(
+        {"id": 1}
+    )
+
+    assert result is None
