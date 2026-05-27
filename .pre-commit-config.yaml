@@ -1,13 +1,40 @@
+fail_fast: true
+
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.2
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: [--branch=main]
+      - id: check-added-large-files
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
   - repo: local
     hooks:
       - id: compile-python
         name: compile python files
-        entry: python3 -m compileall -q app alembic main.py
+        entry: poetry run python -m compileall -q app alembic main.py
         language: system
         pass_filenames: false
+
       - id: unit-tests
-        name: unit tests
-        entry: python3 -m pytest -q --cov=app --cov-report=term-missing
+        name: unit tests with coverage
+        entry: poetry run pytest -q --cov=app --cov-report=term-missing --cov-fail-under=90
         language: system
         pass_filenames: false

@@ -53,9 +53,7 @@ class CreateAdminWorkflow:
             Exception: Propagates unexpected exceptions for logging and debugging.
         """
         self.logger.log_info("[workflow] processing create admin")
-        self.logger.log_debug(
-            f"[workflow] request dto: {request.__class__.__name__}"
-        )
+        self.logger.log_debug(f"[workflow] request dto: {request.__class__.__name__}")
         admin_user = UserTable(
             name=request.name,
             email=request.email,

@@ -27,8 +27,16 @@ def test_logger_manager_initializes_sentry_when_not_debug(monkeypatch):
     calls = {}
 
     monkeypatch.setattr(setup_logger, "get_trace_id", lambda: None)
-    monkeypatch.setattr(setup_logger.sentry_sdk, "init", lambda **kwargs: calls.setdefault("init", kwargs))
-    monkeypatch.setattr(setup_logger.sentry_sdk, "capture_message", lambda *args, **kwargs: calls.setdefault("capture", args))
+    monkeypatch.setattr(
+        setup_logger.sentry_sdk,
+        "init",
+        lambda **kwargs: calls.setdefault("init", kwargs),
+    )
+    monkeypatch.setattr(
+        setup_logger.sentry_sdk,
+        "capture_message",
+        lambda *args, **kwargs: calls.setdefault("capture", args),
+    )
 
     manager = LoggerManager(debug=False, settings=Settings())
     manager.log_error("error")
