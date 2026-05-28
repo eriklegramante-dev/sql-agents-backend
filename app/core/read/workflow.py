@@ -114,20 +114,3 @@ class ReadUserWorkflow:
             "message": "Users found successfully",
             "data": safe_users,
         }
-
-        """
-        Processes the user read request by applying filters,
-        querying the repository, and formatting the response.
-
-        Args:
-            db:
-                Active database session used for query execution.
-
-            request:
-                DTO containing optional filters for user search.
-
-        Returns:
-            dict:
-                Result dictionary indicating success or failure,
-                with a message and optional user data.
-        """
