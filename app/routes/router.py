@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.routes.auth.route import router as auth_router
+from app.routes.read.router import router as read_router
 from app.routes.update.route import router as update_router
 from app.routes.recent_history.route import router as recent_history_router
 
@@ -51,6 +52,8 @@ api_router.include_router(
 )
 
 api_router.include_router(create_router, prefix="/api/v1", tags=["Users"])
+
+api_router.include_router(read_router, prefix="/api/v1", tags=["Read"])
 
 api_router.include_router(
     recent_history_router, prefix="/api/v1", tags=["Recent History"]

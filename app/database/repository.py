@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar, Generic, Type
+from typing import Optional, TypeVar, Generic, Type, List
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -462,3 +462,43 @@ class DatabaseRepository(Generic[T]):
                 )
 
                 return []
+
+    async def read_user(
+        self,
+        filters: dict,
+    ) -> Optional[List[T]]:
+        """
+        Retrieves users using dynamic filters.
+
+        Args:
+            filters (dict):
+                Dictionary containing query filters.
+
+        Returns:
+            Optional[List[T]]:
+                List of users found or None.
+        """
+
+        self.logger.log_info(f"[database] reading users with filters: {filters}")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                query = select(self.model)
+
+                for field, value in filters.items():
+                    query = query.where(getattr(self.model, field) == value)
+
+                result = await session.execute(query)
+
+                users = result.scalars().all()
+
+                self.logger.log_debug(f"[database] ReadUser result count: {len(users)}")
+
+                return users
+
+            except SQLAlchemyError as e:
+                self.logger.log_error(f"[database] error reading users: {e}")
+
+                return None
