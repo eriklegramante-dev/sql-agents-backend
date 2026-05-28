@@ -47,14 +47,44 @@ class UserPolicy:
         self.logger.log_info(f"[policy] User {current_user.id} denied create access.")
         return False
 
-    def can_view(self, request: GetUserRequestDTO, current_user: UserTable) -> bool:
+    def can_view(
+        self,
+        request: GetUserRequestDTO,
+        current_user: UserTable,
+    ) -> bool:
+        """
+        Validates whether the authenticated user is authorized
+        to view user data.
+
+        Authorization rules:
+
+        - Administrators can view any user and apply all filters.
+        - Standard users can only access their own profile.
+        - Standard users are not allowed to use restricted filters
+        such as email, cpf, role, status, or country.
+        - Standard users may access their own profile by omitting
+        the id filter or by explicitly providing their own id.
+
+        Args:
+            request (GetUserRequestDTO):
+                DTO containing optional user search filters.
+
+            current_user (UserTable):
+                Authenticated user requesting access.
+
+        Returns:
+            bool:
+                True when the read operation is authorized,
+                otherwise False.
+        """
+
         self.logger.log_debug(
-            f"[policy] validating view permission" f"for user {current_user.id}"
+            f"[policy] validating view permission " f"for user {current_user.id}"
         )
 
         if current_user.role == UserRole.ADMIN:
             self.logger.log_info(
-                f"[policy] ADMIN {current_user.id}" f"authorized to view users."
+                f"[policy] ADMIN {current_user.id} " f"authorized to view users."
             )
 
             return True
@@ -72,7 +102,7 @@ class UserPolicy:
 
         if has_forbidden_filters:
             self.logger.log_info(
-                f"[policy] Access denied for user"
+                f"[policy] Access denied for user "
                 f"{current_user.id}: forbidden filters."
             )
 
@@ -80,14 +110,14 @@ class UserPolicy:
 
         if request.id is None:
             self.logger.log_info(
-                f"[policy] User {current_user.id}" f"authorized to view own profile"
+                f"[policy] User {current_user.id} " f"authorized to view own profile"
             )
 
             return True
 
         if request.id == current_user.id:
             self.logger.log_info(
-                f"[policy] User {current_user.id}"
+                f"[policy] User {current_user.id} "
                 f"authorized to view own profile by id"
             )
 
@@ -95,7 +125,7 @@ class UserPolicy:
 
         self.logger.log_info(
             f"[policy] Access denied for user "
-            f"{current_user.id}: attempted access"
+            f"{current_user.id}: attempted access "
             f"to user {request.id}."
         )
 

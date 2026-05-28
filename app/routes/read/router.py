@@ -1,6 +1,8 @@
+from typing import Dict, Any
+
 from fastapi import APIRouter, Depends
 
-from app.models.users_table import UserTable 
+from app.models.users_table import UserTable
 
 from app.security.security import get_current_user
 
@@ -12,42 +14,37 @@ from app.routes.read.dtos.dto import (
     GetUserRequestDTO,
 )
 
-router = APIRouter(
-    tags=["Read"]
+router = APIRouter(tags=["Read"])
+
+
+@router.get(
+    "/read",
+    response_model=Dict[str, Any],
 )
-
-
-@router.get("/read")                
-async def read_user(                              
-    request: GetUserRequestDTO = Depends(),            
-    current_user: UserTable = Depends(get_current_user)
-):
+async def read_user(
+    request: GetUserRequestDTO = Depends(),
+    current_user: UserTable = Depends(get_current_user),
+) -> Dict[str, Any]:
     """
-    Route responsible for processing user read requests.
+    Processes authenticated user read requests.
 
-    This endpoint receives search filters,
-    validates the authenticated user,
-    and returns user data based on the request.
+    This endpoint receives optional user search filters,
+    validates the authenticated user context,
+    and returns sanitized user data according
+    to the read access rules.
 
     Args:
         request (GetUserRequestDTO):
-            DTO containing user search filters.
+            DTO containing optional user search filters.
 
-        db (Session):
-            Active database session.
-
-        current_user:
-            Authenticated user performing the request.
+        current_user (UserTable):
+            Authenticated user extracted from the access token.
 
     Returns:
-        dict:
-            Response containing the operation result
-            and optional user data.
-    """    
+        Dict[str, Any]:
+            Dictionary containing the operation result
+            and optional sanitized user data.
+    """
     controller = ReadUserController()
-    
-    return await controller.handle(
-        request=request,
-        current_user=current_user
-   )
 
+    return await controller.handle(request=request, current_user=current_user)
