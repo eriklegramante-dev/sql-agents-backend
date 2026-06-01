@@ -154,6 +154,12 @@ class UserPolicy:
                 True when the update operation is authorized,
                 otherwise False.
         """
+        if current_user.role == UserRole.ADMIN:
+            self.logger.log_info(
+                f"[policy] ADMIN {current_user.id} authorized update access."
+            )
+        return True
+
         if request.id != current_user.id:
             self.logger.log_info(
                 f"[policy] user {current_user.id} denied update access."
