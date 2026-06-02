@@ -63,7 +63,7 @@ class CreateUserController:
 
             response: CreateUserResponseDTO = await self.service.handle_create(request)
             self.logger.log_debug(f"[controller] response: {response.model_dump()}")
-            status_code = 201 if response.success else 400
+            status_code = 201 if response.success else 422
             return JSONResponse(
                 status_code=status_code,
                 content=response.model_dump(),
