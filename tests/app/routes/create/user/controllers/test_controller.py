@@ -25,9 +25,13 @@ class ServiceSuccess:
         return CreateUserResponseDTO(success=True, message="created", data={"id": 1})
 
 
-class ServiceFailure:
+class ServiceDuplicatedUser:
     async def handle_create(self, request):
-        return CreateUserResponseDTO(success=False, message="failed", data=None)
+        return CreateUserResponseDTO(
+            success=False,
+            message="Failed to create user.",
+            data=None,
+        )
 
 
 class ServiceError:
@@ -61,14 +65,14 @@ async def test_create_user_returns_201_for_success(fake_logger):
     assert response_content(response)["data"] == {"id": 1}
 
 
-async def test_create_user_returns_400_for_service_failure(fake_logger):
+async def test_create_user_returns_422_for_duplicated_user(fake_logger):
     controller = CreateUserController(
-        service=ServiceFailure(), policy=PolicyAllow(), logger=fake_logger
+        service=ServiceDuplicatedUser(), policy=PolicyAllow(), logger=fake_logger
     )
 
     response = await controller.create_user(create_request(), current_user())
 
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert response_content(response)["success"] is False
 
 

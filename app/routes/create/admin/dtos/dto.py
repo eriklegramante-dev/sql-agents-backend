@@ -2,10 +2,11 @@ import re
 
 from datetime import date
 from typing import Any, Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class CreateAdminRequestDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(
         ..., min_length=1, max_length=100, description="Full name of the admin user."
     )
