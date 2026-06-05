@@ -158,7 +158,7 @@ class UserPolicy:
             self.logger.log_info(
                 f"[policy] ADMIN {current_user.id} authorized update access."
             )
-        return True
+            return True
 
         if request.id != current_user.id:
             self.logger.log_info(
