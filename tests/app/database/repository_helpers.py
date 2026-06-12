@@ -92,6 +92,9 @@ class Result:
     def first(self):
         return self.record
 
+    def all(self):
+        return self.record
+
 
 class Connection:
     def __init__(self, session=None, engine=None):
