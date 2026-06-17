@@ -502,3 +502,42 @@ class DatabaseRepository(Generic[T]):
                 self.logger.log_error(f"[database] error reading users: {e}")
 
                 return None
+
+    async def save_history(
+        self,
+        history: T,
+    ):
+        """
+        Saves a history record.
+
+        Args:
+            history (T):
+                History entity to be persisted.
+
+        Returns:
+            Optional[int]:
+                Saved history identifier or None.
+        """
+
+        self.logger.log_info("[database] saving history record")
+
+        sessionmaker = self.db_connection.get_session()
+
+        async with sessionmaker() as session:
+            try:
+                session.add(history)
+
+                await session.commit()
+
+                await session.refresh(history)
+
+                self.logger.log_info(f"[database] history saved: {history.id}")
+
+                return history.id
+
+            except SQLAlchemyError as e:
+                await session.rollback()
+
+                self.logger.log_error(f"[database] error saving history: {e}")
+
+                return None

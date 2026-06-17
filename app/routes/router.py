@@ -22,6 +22,9 @@ from app.routes.delete.history.route import (
     router as delete_history_router,
 )
 
+from app.routes.save_history.route import (
+    router as save_history_router,
+)
 
 api_router = APIRouter()
 
@@ -57,4 +60,10 @@ api_router.include_router(read_router, prefix="/api/v1", tags=["Read"])
 
 api_router.include_router(
     recent_history_router, prefix="/api/v1", tags=["Recent History"]
+)
+
+api_router.include_router(
+    save_history_router,
+    prefix="/api/v1",
+    tags=["Save History"],
 )

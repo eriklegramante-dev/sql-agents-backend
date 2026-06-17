@@ -14,14 +14,26 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.users_table import Base
 
+from sqlalchemy import JSON
+
 
 class HistoryStatus(enum.Enum):
+    """
+    Available status values
+    for history records.
+    """
+
     ACTIVE = "ACTIVE"
     ARCHIVED = "ARCHIVED"
     DELETED = "DELETED"
 
 
 class HistoryTable(Base):
+    """
+    Database model representing
+    user history records.
+    """
+
     __tablename__ = "history"
 
     id = Column(
@@ -44,6 +56,11 @@ class HistoryTable(Base):
 
     title = Column(
         String(255),
+        nullable=False,
+    )
+
+    message = Column(
+        JSON,
         nullable=False,
     )
 
