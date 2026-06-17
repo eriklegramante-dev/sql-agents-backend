@@ -22,7 +22,9 @@ async def test_handle_save_history_returns_response_dto():
     workflow.execute.return_value = {
         "success": True,
         "message": "History saved successfully.",
-        "history_id": history_id,
+        "data": {
+            "history_id": history_id,
+        },
     }
 
     service = SaveHistoryService(
@@ -50,7 +52,7 @@ async def test_handle_save_history_returns_response_dto():
 
     assert result.success is True
     assert result.message == "History saved successfully."
-    assert result.history_id == history_id
+    assert result.data.history_id == history_id
 
 
 @pytest.mark.asyncio
@@ -60,7 +62,9 @@ async def test_handle_save_history_calls_workflow_with_correct_arguments():
     workflow.execute.return_value = {
         "success": True,
         "message": "History saved successfully.",
-        "history_id": uuid4(),
+        "data": {
+            "history_id": uuid4(),
+        },
     }
 
     service = SaveHistoryService(
@@ -94,7 +98,9 @@ async def test_handle_save_history_returns_failure_response():
     workflow.execute.return_value = {
         "success": False,
         "message": "Failed to save history.",
-        "history_id": None,
+        "data": {
+            "history_id": None,
+        },
     }
 
     service = SaveHistoryService(
@@ -117,7 +123,7 @@ async def test_handle_save_history_returns_failure_response():
 
     assert result.success is False
     assert result.message == "Failed to save history."
-    assert result.history_id is None
+    assert result.data.history_id is None
 
 
 def test_init_uses_injected_dependencies():

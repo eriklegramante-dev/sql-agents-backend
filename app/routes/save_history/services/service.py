@@ -14,8 +14,20 @@ from app.models.users_table import UserTable
 
 class SaveHistoryService:
     """
-    Service responsible for
-    history save operations.
+    Service responsible for coordinating history save requests.
+
+    Receives validated request data from the controller,
+    delegates the history creation process to the workflow,
+    and returns the standardized response DTO to the API layer.
+
+    Attributes:
+        workflow (SaveHistoryWorkflow):
+            Workflow responsible for executing
+            the history save process.
+
+        logger (LoggerManager):
+            Logger instance used for
+            service logs.
     """
 
     def __init__(

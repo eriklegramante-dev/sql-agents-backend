@@ -9,11 +9,34 @@ class SaveHistoryRequestDTO(BaseModel):
     DTO used to create a new history record.
     """
 
-    title: str = Field(..., min_length=1, max_length=255, description="History title.")
+    title: str = Field(
+        ...,
+        min_length=1,
+        max_length=255,
+        description="History title.",
+    )
 
-    message: dict[str, Any] = Field(..., description="Chat payload.")
+    message: dict[str, Any] = Field(
+        ...,
+        description="Chat payload.",
+    )
 
-    dataset_id: Optional[UUID] = Field(None, description="Optional dataset identifier.")
+    dataset_id: Optional[UUID] = Field(
+        None,
+        description="Optional dataset identifier.",
+    )
+
+
+class SaveHistoryResponseDataDTO(BaseModel):
+    """
+    Response payload containing
+    history-specific data.
+    """
+
+    history_id: Optional[UUID] = Field(
+        None,
+        description="Created history identifier.",
+    )
 
 
 class SaveHistoryResponseDTO(BaseModel):
@@ -25,4 +48,4 @@ class SaveHistoryResponseDTO(BaseModel):
 
     message: str = Field(...)
 
-    history_id: Optional[UUID] = Field(None, description="Created history identifier.")
+    data: SaveHistoryResponseDataDTO = Field(...)

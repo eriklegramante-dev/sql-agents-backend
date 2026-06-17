@@ -21,7 +21,9 @@ async def test_handle_returns_json_response():
     service.handle_save_history.return_value = SaveHistoryResponseDTO(
         success=True,
         message="History saved successfully.",
-        history_id=None,
+        data={
+            "history_id": None,
+        },
     )
 
     controller = SaveHistoryController(
@@ -54,7 +56,9 @@ async def test_handle_calls_service_with_correct_arguments():
     service.handle_save_history.return_value = SaveHistoryResponseDTO(
         success=True,
         message="History saved successfully.",
-        history_id=None,
+        data={
+            "history_id": None,
+        },
     )
 
     controller = SaveHistoryController(
@@ -88,7 +92,9 @@ async def test_handle_returns_expected_content():
     service.handle_save_history.return_value = SaveHistoryResponseDTO(
         success=True,
         message="History saved successfully.",
-        history_id=None,
+        data={
+            "history_id": None,
+        },
     )
 
     controller = SaveHistoryController(
@@ -114,7 +120,9 @@ async def test_handle_returns_expected_content():
     assert content == {
         "success": True,
         "message": "History saved successfully.",
-        "history_id": None,
+        "data": {
+            "history_id": None,
+        },
     }
 
 

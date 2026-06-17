@@ -28,7 +28,9 @@ async def test_save_history_calls_controller_handle():
         controller_instance.handle.return_value = {
             "success": True,
             "message": "History saved successfully.",
-            "history_id": None,
+            "data": {
+                "history_id": None,
+            },
         }
 
         await save_history(
@@ -57,7 +59,9 @@ async def test_save_history_returns_controller_response():
     expected_response = {
         "success": True,
         "message": "History saved successfully.",
-        "history_id": None,
+        "data": {
+            "history_id": None,
+        },
     }
 
     with patch(

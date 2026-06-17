@@ -41,7 +41,9 @@ async def test_execute_returns_success():
     assert result == {
         "success": True,
         "message": "History saved successfully.",
-        "history_id": history_id,
+        "data": {
+            "history_id": history_id,
+        },
     }
 
     repository.save_history.assert_awaited_once()
@@ -77,7 +79,9 @@ async def test_execute_returns_failure_when_history_is_not_saved():
     assert result == {
         "success": False,
         "message": "Failed to save history.",
-        "history_id": None,
+        "data": {
+            "history_id": None,
+        },
     }
 
     repository.save_history.assert_awaited_once()

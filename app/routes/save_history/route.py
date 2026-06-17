@@ -19,6 +19,27 @@ async def save_history(
     request: SaveHistoryRequestDTO,
     current_user: UserTable = Depends(get_current_user),
 ):
+    """
+    Creates a new history record for the authenticated user.
+
+    Receives the history data, validates the authenticated user
+    context, and delegates the request processing through the
+    controller, service, and workflow layers.
+
+    Args:
+        request (SaveHistoryRequestDTO):
+            History data to be persisted.
+
+        current_user (UserTable):
+            Authenticated user obtained from the
+            security dependency.
+
+    Returns:
+        JSONResponse:
+            Standardized response containing the
+            operation result and created history identifier.
+    """
+
     controller = SaveHistoryController()
 
     return await controller.handle(

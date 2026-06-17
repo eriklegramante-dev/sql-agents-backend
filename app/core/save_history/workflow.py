@@ -18,8 +18,13 @@ from app.models.users_table import UserTable
 
 class SaveHistoryWorkflow:
     """
-    Workflow responsible for handling
-    history save operations.
+    Coordinates the history creation process by building
+    the history entity, persisting it through the repository,
+    and returning the operation result.
+
+    Dependencies:
+        - DatabaseRepository: Handles history persistence.
+        - LoggerManager: Provides workflow logging.
     """
 
     def __init__(
@@ -78,11 +83,15 @@ class SaveHistoryWorkflow:
             return {
                 "success": False,
                 "message": "Failed to save history.",
-                "history_id": None,
+                "data": {
+                    "history_id": history_id,
+                },
             }
 
         return {
             "success": True,
             "message": "History saved successfully.",
-            "history_id": history_id,
+            "data": {
+                "history_id": history_id,
+            },
         }
