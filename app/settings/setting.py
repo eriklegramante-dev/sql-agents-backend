@@ -54,11 +54,29 @@ class SecuritySettings(BaseSettings):
     }
 
 
+class CorsSettings(BaseSettings):
+    origins: str = ""
+
+    model_config = {
+        "env_prefix": "CORS_",
+        "extra": "forbid",
+    }
+
+    @property
+    def origins_list(self) -> list[str]:
+        return [
+            origin.strip()
+            for origin in self.origins.split(",")
+            if origin.strip()
+        ]
+
+
 class Settings(BaseSettings):
     env: AppEnvironmentSettings = AppEnvironmentSettings()
     security: SecuritySettings = SecuritySettings()
     database: DatabaseSettings = DatabaseSettings()
     sentry: SentrySettings = SentrySettings()
+    cors: CorsSettings = CorsSettings()
 
     model_config = {
         "env_file": ".env",
