@@ -12,7 +12,9 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = "0bbb5527684d"  # pragma: allowlist secretdown_revision: Union[str, Sequence[str], None] = "b8719f4756ce"
+revision: str = "0bbb5527684d"  # pragma: allowlist secret
+down_revision: Union[str, Sequence[str], None] = "b8719f4756ce"
+
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
