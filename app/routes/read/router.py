@@ -48,3 +48,24 @@ async def read_user(
     controller = ReadUserController()
 
     return await controller.handle(request=request, current_user=current_user)
+
+
+@router.get(
+    "/me",
+    response_model=Dict[str, Any],
+)
+async def read_current_user(
+    current_user: UserTable = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Returns sanitized data for the authenticated user.
+
+    The user identifier comes exclusively from the validated
+    bearer token through the authentication dependency.
+    """
+    controller = ReadUserController()
+
+    return await controller.handle(
+        request=GetUserRequestDTO(id=current_user.id),
+        current_user=current_user,
+    )
