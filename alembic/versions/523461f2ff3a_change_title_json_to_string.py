@@ -18,19 +18,23 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade():
-    op.drop_column(
+def upgrade() -> None:
+    op.alter_column(
         "history",
-        "metadata",
+        "title",
+        existing_type=sa.JSON(),
+        type_=sa.String(),
+        existing_nullable=False,
+        postgresql_using="title::text",
     )
 
 
-def downgrade():
-    op.add_column(
+def downgrade() -> None:
+    op.alter_column(
         "history",
-        sa.Column(
-            "metadata",
-            sa.JSON(),
-            nullable=True,
-        ),
+        "title",
+        existing_type=sa.String(),
+        type_=sa.JSON(),
+        existing_nullable=False,
+        postgresql_using="title::json",
     )
