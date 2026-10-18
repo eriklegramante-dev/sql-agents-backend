@@ -20,7 +20,7 @@ async def save_history(
     current_user: UserTable = Depends(get_current_user),
 ):
     """
-    Creates a new history record for the authenticated user.
+    Creates history or atomically saves a session for the authenticated user.
 
     Receives the history data, validates the authenticated user
     context, and delegates the request processing through the
@@ -37,7 +37,7 @@ async def save_history(
     Returns:
         JSONResponse:
             Standardized response containing the
-            operation result and created history identifier.
+            operation result and saved history identifier.
     """
 
     controller = SaveHistoryController()

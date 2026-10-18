@@ -6,8 +6,14 @@ from pydantic import BaseModel, Field
 
 class SaveHistoryRequestDTO(BaseModel):
     """
-    DTO used to create a new history record.
+    DTO used to create history or update a saved user session.
+
+    An optional session identifier selects atomic creation or update
+    of the authenticated user's session. Omitting it creates a new
+    legacy history record.
     """
+
+    session_id: UUID | None = None
 
     title: str = Field(
         ...,

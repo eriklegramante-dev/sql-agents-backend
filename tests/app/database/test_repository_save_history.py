@@ -8,6 +8,12 @@ from tests.app.database.repository_helpers import (
 )
 
 
+class HistorySession(Session):
+    async def flush(self):
+        if self.instance.id is None:
+            self.instance.id = 10
+
+
 class History:
     def __init__(self, id=None):
         self.id = id
@@ -18,7 +24,7 @@ async def test_save_history_success(fake_logger):
     history = History(id=1)
 
     repository = DatabaseRepository(
-        db_connection=Connection(session=Session()),
+        db_connection=Connection(session=HistorySession()),
         logger=fake_logger,
     )
 
@@ -34,7 +40,7 @@ async def test_save_history_assigns_id_when_missing(
     history = History()
 
     repository = DatabaseRepository(
-        db_connection=Connection(session=Session()),
+        db_connection=Connection(session=HistorySession()),
         logger=fake_logger,
     )
 
@@ -50,7 +56,7 @@ async def test_save_history_returns_none_on_commit_error(
     history = History(id=1)
 
     repository = DatabaseRepository(
-        db_connection=Connection(session=Session(raises="commit")),
+        db_connection=Connection(session=HistorySession(raises="commit")),
         logger=fake_logger,
     )
 

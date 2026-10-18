@@ -18,7 +18,7 @@ from app.models.users_table import UserTable
 
 class SaveHistoryWorkflow:
     """
-    Coordinates the history creation process by building
+    Coordinates history creation or atomic session updates by building
     the history entity, persisting it through the repository,
     and returning the operation result.
 
@@ -53,12 +53,12 @@ class SaveHistoryWorkflow:
         current_user: UserTable,
     ):
         """
-        Saves a history record for
-        the authenticated user.
+        Creates history or atomically updates a saved session
+        for the authenticated user.
 
         Args:
             request (SaveHistoryRequestDTO):
-                DTO containing history data.
+                DTO containing history data and an optional session identifier.
 
             current_user (UserTable):
                 Authenticated user performing the request.
@@ -66,11 +66,17 @@ class SaveHistoryWorkflow:
         Returns:
             dict:
                 Operation result containing
-                save status and history identifier.
+                save status and the saved history identifier.
+                Database failures produce an unsuccessful result.
+
+        Raises:
+            DeletedHistoryError:
+                If the requested session belongs to a deleted history.
         """
 
         history = HistoryTable(
             user_id=current_user.id,
+            session_id=request.session_id,
             dataset_id=request.dataset_id,
             title=request.title,
             message=request.message,
