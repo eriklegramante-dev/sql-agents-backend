@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     func,
     Integer,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -30,11 +31,18 @@ class HistoryStatus(enum.Enum):
 
 class HistoryTable(Base):
     """
-    Database model representing
-    user history records.
+    Database model representing user history records.
+
+    Records with a session identifier are unique per user and session.
+    Legacy records may omit the session identifier.
     """
 
     __tablename__ = "history"
+    __table_args__ = (
+        UniqueConstraint("user_id", "session_id", name="uq_history_user_session"),
+    )
+
+    session_id = Column(UUID(as_uuid=True), nullable=True)
 
     id = Column(
         UUID(as_uuid=True),

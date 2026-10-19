@@ -17,7 +17,7 @@ class SaveHistoryService:
     Service responsible for coordinating history save requests.
 
     Receives validated request data from the controller,
-    delegates the history creation process to the workflow,
+    delegates history creation or session updates to the workflow,
     and returns the standardized response DTO to the API layer.
 
     Attributes:

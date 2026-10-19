@@ -26,6 +26,11 @@ from app.routes.save_history.route import (
     router as save_history_router,
 )
 
+from app.routes.chat_sessions.route import (
+    router as chat_sessions_router,
+)
+
+
 api_router = APIRouter()
 
 api_router.include_router(
@@ -66,4 +71,12 @@ api_router.include_router(
     save_history_router,
     prefix="/api/v1",
     tags=["Save History"],
+)
+
+from app.routes.chat_sessions.route import router as chat_sessions_router
+
+api_router.include_router(
+    chat_sessions_router,
+    prefix="/api/v1",
+    tags=["Chat Sessions"],
 )

@@ -1,11 +1,16 @@
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
-from app.models.history_table import HistoryStatus
+from app.core.recent_history.workflow import RecentHistoryWorkflow
+from app.database.repository import DatabaseRepository
+from app.models.history_table import HistoryStatus, HistoryTable
 from app.routes.recent_history.services.service import RecentHistoryService
+from tests.app.database.repository_helpers import Connection, Result, Session
 
 
 pytestmark = pytest.mark.asyncio
@@ -39,8 +44,9 @@ def history_entry(**overrides):
     return SimpleNamespace(**values)
 
 
-async def test_handle_recent_history_returns_success_response(fake_logger):
-    entry = history_entry()
+@pytest.mark.parametrize("status", [HistoryStatus.ACTIVE, HistoryStatus.ARCHIVED])
+async def test_handle_recent_history_returns_success_response(fake_logger, status):
+    entry = history_entry(status=status)
     workflow = WorkflowSuccess([entry])
     service = RecentHistoryService(workflow=workflow, logger=fake_logger)
 
@@ -52,7 +58,7 @@ async def test_handle_recent_history_returns_success_response(fake_logger):
     assert len(response.data) == 1
     assert response.data[0].id == entry.id
     assert response.data[0].dataset_id == entry.dataset_id
-    assert response.data[0].status == "ACTIVE"
+    assert response.data[0].status == status.value
 
 
 async def test_handle_recent_history_returns_empty_success_response(fake_logger):
@@ -75,6 +81,37 @@ async def test_handle_recent_history_returns_failure_response_on_error(fake_logg
     assert response.success is False
     assert response.message == "Failed to retrieve recent history."
     assert response.data == []
+
+
+@pytest.mark.parametrize("query_fails", [False, True])
+async def test_handle_recent_history_handles_repository_query_outcome(
+    fake_logger, query_fails
+):
+    session = Session()
+    session.execute = AsyncMock(
+        return_value=Result([]),
+        side_effect=SQLAlchemyError("query failed") if query_fails else None,
+    )
+    repository = DatabaseRepository(
+        db_connection=Connection(session=session),
+        logger=fake_logger,
+        model=HistoryTable,
+    )
+    workflow = RecentHistoryWorkflow(
+        history_repository=repository, logger=fake_logger
+    )
+    service = RecentHistoryService(workflow=workflow, logger=fake_logger)
+
+    response = await service.handle_recent_history(user_id=7)
+
+    session.execute.assert_awaited_once()
+    assert response.success is (not query_fails)
+    assert response.data == []
+    assert response.message == (
+        "Failed to retrieve recent history."
+        if query_fails
+        else "Recent history retrieved successfully."
+    )
 
 
 async def test_service_uses_default_dependencies_with_monkeypatch(

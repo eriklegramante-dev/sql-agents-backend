@@ -2,6 +2,8 @@ from typing import Optional
 
 from fastapi.responses import JSONResponse
 
+from app.database.history_errors import DeletedHistoryError
+
 from app.logs.setup_logger import LOGGER, LoggerManager
 
 from app.routes.save_history.services.service import (
@@ -10,6 +12,7 @@ from app.routes.save_history.services.service import (
 
 from app.routes.save_history.dtos.dto import (
     SaveHistoryRequestDTO,
+    SaveHistoryResponseDTO,
 )
 
 
@@ -54,15 +57,27 @@ class SaveHistoryController:
 
         Returns:
             JSONResponse:
-                Standardized API response.
+                Standardized response with HTTP 200 on success,
+                HTTP 409 when the session history is deleted,
+                or HTTP 500 when persistence fails.
         """
 
-        response = await self.service.handle_save_history(
-            request=request,
-            current_user=current_user,
-        )
+        try:
+            response = await self.service.handle_save_history(
+                request=request,
+                current_user=current_user,
+            )
+        except DeletedHistoryError:
+            return JSONResponse(
+                status_code=409,
+                content=SaveHistoryResponseDTO(
+                    success=False,
+                    message="Deleted history cannot be saved.",
+                    data={"history_id": None},
+                ).model_dump(mode="json"),
+            )
 
         return JSONResponse(
-            status_code=200,
+            status_code=200 if response.success else 500,
             content=response.model_dump(mode="json"),
         )

@@ -3,8 +3,12 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import select
+from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import insert
 
+from app.database.history_errors import DeletedHistoryError
+
+from app.models.history_table import HistoryStatus
 from app.database.connection import DatabaseConnection
 from app.logs.setup_logger import LOGGER, LoggerManager
 from app.models.users_table import Base, UserTable
@@ -412,10 +416,9 @@ class DatabaseRepository(Generic[T]):
         Retrieve recent history entries
         for a specific authenticated user.
 
-        This method filters history records
-        by user identifier, orders results
-        by creation date in descending order,
-        and limits the number of returned entries.
+        This method excludes deleted records, filters by user identifier,
+        and orders results by creation date and identifier in descending
+        order before applying the requested limit.
 
         Args:
             user_id:
@@ -428,9 +431,12 @@ class DatabaseRepository(Generic[T]):
 
         Returns:
             list[T]:
-                List containing the user's most
-                    recent history entries ordered
-                from newest to oldest.
+                List containing the user's non-deleted history entries,
+                ordered from newest to oldest.
+
+        Raises:
+            SQLAlchemyError:
+                If history retrieval fails, after logging the error.
         """
 
         self.logger.log_info(f"[database] retrieving recent history for user {user_id}")
@@ -441,8 +447,14 @@ class DatabaseRepository(Generic[T]):
             try:
                 query = (
                     select(self.model)
-                    .where(self.model.user_id == user_id)
-                    .order_by(self.model.created_at.desc())
+                    .where(
+                        self.model.user_id == user_id,
+                        self.model.status != HistoryStatus.DELETED,
+                    )
+                    .order_by(
+                        self.model.created_at.desc(),
+                        self.model.id.desc(),
+                    )
                     .limit(limit)
                 )
 
@@ -461,7 +473,7 @@ class DatabaseRepository(Generic[T]):
                     f"[database] error retrieving recent history: {e}"
                 )
 
-                return []
+                raise
 
     async def read_user(
         self,
@@ -508,36 +520,66 @@ class DatabaseRepository(Generic[T]):
         history: T,
     ):
         """
-        Saves a history record.
+        Create a history record or atomically save a user's session.
+
+        Records without a session identifier are inserted as new histories.
+        For a user/session pair, insert a new active history or update its
+        title, message, dataset, and update timestamp. Existing identifiers,
+        creation timestamps, and statuses are preserved.
 
         Args:
             history (T):
-                History entity to be persisted.
+                History entity containing the user, optional session,
+                and history data to persist.
 
         Returns:
-            Optional[int]:
-                Saved history identifier or None.
+            Optional[UUID]:
+                Saved history identifier, or None after rolling back
+                a database failure.
+
+        Raises:
+            DeletedHistoryError:
+                If the user/session pair belongs to a deleted history,
+                after rolling back the transaction.
         """
-
         self.logger.log_info("[database] saving history record")
-
         sessionmaker = self.db_connection.get_session()
-
         async with sessionmaker() as session:
             try:
-                session.add(history)
-
+                if getattr(history, "session_id", None) is None:
+                    session.add(history)
+                    # Obtain the UUID before commit, avoiding a fallible refresh
+                    # after the transaction has already succeeded.
+                    await session.flush()
+                    history_id = history.id
+                else:
+                    statement = insert(self.model).values(
+                        user_id=history.user_id,
+                        session_id=history.session_id,
+                        title=history.title,
+                        message=history.message,
+                        dataset_id=history.dataset_id,
+                        status=HistoryStatus.ACTIVE,
+                    )
+                    statement = statement.on_conflict_do_update(
+                        constraint="uq_history_user_session",
+                        set_={
+                            "title": statement.excluded.title,
+                            "message": statement.excluded.message,
+                            "dataset_id": statement.excluded.dataset_id,
+                            "updated_at": func.now(),
+                        },
+                        where=self.model.status != HistoryStatus.DELETED,
+                    ).returning(self.model.id)
+                    result = await session.execute(statement)
+                    history_id = result.scalar_one_or_none()
+                    if history_id is None:
+                        await session.rollback()
+                        raise DeletedHistoryError("Deleted history cannot be saved.")
                 await session.commit()
-
-                await session.refresh(history)
-
-                self.logger.log_info(f"[database] history saved: {history.id}")
-
-                return history.id
-
+                self.logger.log_info(f"[database] history saved: {history_id}")
+                return history_id
             except SQLAlchemyError as e:
                 await session.rollback()
-
                 self.logger.log_error(f"[database] error saving history: {e}")
-
                 return None
