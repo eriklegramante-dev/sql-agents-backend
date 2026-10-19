@@ -21,23 +21,16 @@ class ChatSessionCountController:
 
     def __init__(
         self,
-        service: ChatSessionCountService | None = None,
+        service: ChatSessionCountService,
         logger: LoggerManager | None = None,
     ) -> None:
-        """
-        Initialize controller dependencies.
+        """Initialize the controller dependencies.
 
         Args:
-            service (ChatSessionCountService | None):
-                Optional service instance for dependency injection.
-                Defaults to ChatSessionCountService.
-            logger (LoggerManager | None):
-                Optional logger instance used for controller errors.
-                Defaults to the application logger.
+            service: Service responsible for retrieving the session count.
+            logger: Optional logger used to register controller errors.
         """
-        self.service = (
-            service if service is not None else ChatSessionCountService()
-        )
+        self.service = service
         self.logger = logger if logger is not None else LOGGER
 
     async def execute(self, user_id: int) -> JSONResponse:

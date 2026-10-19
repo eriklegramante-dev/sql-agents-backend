@@ -17,21 +17,13 @@ class ChatSessionCountService:
             Workflow responsible for retrieving the user's session total.
     """
 
-    def __init__(
-        self,
-        workflow: ChatSessionCountWorkflow | None = None,
-    ) -> None:
-        """
-        Initialize service dependencies.
+    def __init__(self, workflow: ChatSessionCountWorkflow) -> None:
+        """Initialize the service with its required workflow.
 
         Args:
-            workflow (ChatSessionCountWorkflow | None):
-                Optional workflow instance for dependency injection.
-                Defaults to ChatSessionCountWorkflow.
+            workflow: Workflow responsible for retrieving session totals.
         """
-        self.workflow = (
-            workflow if workflow is not None else ChatSessionCountWorkflow()
-        )
+        self.workflow = workflow
 
     async def execute(self, user_id: int) -> ChatSessionCountResponseDTO:
         """

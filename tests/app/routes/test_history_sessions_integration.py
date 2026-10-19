@@ -13,15 +13,13 @@ from jose import jwt
 from sqlalchemy import func, select
 from sqlalchemy.dialects import postgresql
 
-from app.core.chat_sessions.workflow import ChatSessionCountWorkflow
 from app.core.recent_history.workflow import RecentHistoryWorkflow
 from app.core.save_history.workflow import SaveHistoryWorkflow
 from app.database.history_session_repository import HistorySessionRepository
 from app.database.repository import DatabaseRepository
 from app.models.history_table import HistoryStatus, HistoryTable
 from app.models.users_table import UserTable
-from app.routes.chat_sessions.controllers.controller import ChatSessionCountController
-from app.routes.chat_sessions.services.service import ChatSessionCountService
+from app.routes.chat_sessions.dependencies import dependencie as count_dependencies
 from app.routes.recent_history.controllers.controller import RecentHistoryController
 from app.routes.recent_history.services.service import RecentHistoryService
 from app.routes.save_history.controllers.controller import SaveHistoryController
@@ -58,11 +56,15 @@ def history_http(monkeypatch, fake_logger):
     count_repository.count_sessions_by_user_id = AsyncMock(
         wraps=count_repository.count_sessions_by_user_id
     )
-    count_workflow = ChatSessionCountWorkflow(count_repository)
+    count_repository_factory = Mock(return_value=count_repository)
+    monkeypatch.setattr(count_dependencies, "HistorySessionRepository", count_repository_factory)
+    count_controller = count_dependencies.get_chat_session_count_controller()
+    count_repository_factory.assert_called_once_with(model=HistoryTable)
+    count_service = count_controller.service
+    count_workflow = count_service.workflow
     count_workflow.execute = AsyncMock(wraps=count_workflow.execute)
-    count_service = ChatSessionCountService(count_workflow)
     count_service.execute = AsyncMock(wraps=count_service.execute)
-    count_controller = ChatSessionCountController(count_service, fake_logger)
+    count_controller.logger = fake_logger
     count_controller.execute = AsyncMock(wraps=count_controller.execute)
     save_controller = SaveHistoryController(
         SaveHistoryService(SaveHistoryWorkflow(repository, fake_logger)), fake_logger
@@ -71,16 +73,18 @@ def history_http(monkeypatch, fake_logger):
         service=RecentHistoryService(RecentHistoryWorkflow(repository, fake_logger), fake_logger),
         logger=fake_logger,
     )
-    monkeypatch.setattr("app.routes.chat_sessions.route.ChatSessionCountController", lambda: count_controller)
     monkeypatch.setattr("app.routes.save_history.route.SaveHistoryController", lambda: save_controller)
     monkeypatch.setattr("app.routes.recent_history.route.RecentHistoryController", lambda: recent_controller)
     # No security overrides are installed. Restore any overrides if a test adds one.
     original_overrides = app.dependency_overrides.copy()
-    yield app, authenticator, users, session, (
-        count_controller, count_service, count_workflow, count_repository
-    )
-    app.dependency_overrides.clear()
-    app.dependency_overrides.update(original_overrides)
+    app.dependency_overrides[count_dependencies.get_chat_session_count_controller] = lambda: count_controller
+    try:
+        yield app, authenticator, users, session, (
+            count_controller, count_service, count_workflow, count_repository
+        )
+    finally:
+        app.dependency_overrides.clear()
+        app.dependency_overrides.update(original_overrides)
 
 
 async def request_http(context, method, path, *, user_id=7, token=None, **kwargs):
